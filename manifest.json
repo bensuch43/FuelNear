@@ -1,0 +1,41 @@
+{
+  "name": "FuelNear – UK Fuel Price Finder",
+  "short_name": "FuelNear",
+  "description": "Find the cheapest petrol and diesel near you across 4,000+ UK stations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1923",
+  "theme_color": "#0f1923",
+  "orientation": "portrait-primary",
+  "categories": ["utilities", "travel"],
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Find E10 Petrol",
+      "short_name": "E10",
+      "url": "/?fuel=E10",
+      "description": "Find cheapest E10 near you"
+    },
+    {
+      "name": "Find Diesel",
+      "short_name": "Diesel",
+      "url": "/?fuel=B7",
+      "description": "Find cheapest diesel near you"
+    }
+  ]
+}

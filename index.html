@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1923" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FuelNear" />
+  <meta name="description" content="Find the cheapest fuel near you across 4,000+ UK stations" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <title>FuelNear</title>
+
+  <style>
+    /* ─── TOKENS ─── */
+    :root {
+      --bg:        #0f1923;
+      --surface:   #162030;
+      --card:      #1d2d3e;
+      --border:    #243548;
+      --accent:    #e8ff3b;
+      --accent2:   #3bffb0;
+      --text:      #e8edf2;
+      --muted:     #7a8fa6;
+      --danger:    #ff5f5f;
+      --cheap:     #3bffb0;
+      --mid:       #ffcc3b;
+      --pricey:    #ff8c3b;
+
+      --font-mono: 'DM Mono', 'Fira Mono', monospace;
+      --font-body: 'Inter', system-ui, sans-serif;
+
+      --r-sm: 8px;
+      --r-md: 14px;
+      --r-lg: 20px;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    /* ─── LAYOUT ─── */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bot);
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: var(--safe-top);
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .last-updated {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.3;
+    }
+
+    /* ─── CONTROLS ─── */
+    .controls {
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .location-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .location-display {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .location-display:hover { border-color: var(--accent); }
+    .location-display .loc-icon { font-size: 15px; flex-shrink: 0; }
+    .location-display .loc-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .location-display .loc-label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 1px; }
+    .location-display .loc-val { font-size: 13px; font-weight: 500; }
+
+    .postcode-row {
+      display: none;
+      gap: 8px;
+    }
+
+    .postcode-row.visible { display: flex; }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-body);
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    select {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-body);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8fa6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      transition: border-color 0.15s;
+    }
+
+    select:focus { border-color: var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      color: #0f1923;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-body);
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn:active { transform: scale(0.97); opacity: 0.85; }
+
+    .btn-ghost {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .btn-icon {
+      padding: 10px;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    /* ─── SORT BAR ─── */
+    .sort-bar {
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sort-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border-radius: var(--r-sm);
+      padding: 3px;
+    }
+
+    .sort-tab {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      font-family: var(--font-body);
+    }
+
+    .sort-tab.active {
+      background: var(--card);
+      color: var(--text);
+    }
+
+    .result-count {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ─── RESULTS ─── */
+    .results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── STATE SCREENS ─── */
+    .state-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .state-icon { font-size: 48px; }
+
+    .state-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .state-body { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    .state-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+
+    /* ─── STATION CARD ─── */
+    .station-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .station-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--price-color, var(--border));
+      border-radius: 3px 0 0 3px;
+    }
+
+    .station-card:hover { border-color: rgba(232,255,59,0.3); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .station-info { flex: 1; min-width: 0; }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .brand-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--price-color, var(--muted));
+    }
+
+    .station-address {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .station-postcode {
+      font-size: 11px;
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      margin-top: 3px;
+    }
+
+    .price-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .price-pence {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      line-height: 1;
+      color: var(--price-color, var(--text));
+      letter-spacing: -1px;
+    }
+
+    .price-unit {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 2px;
+    }
+
+    .price-diff {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .price-diff.above { color: var(--pricey); }
+    .price-diff.below { color: var(--cheap); }
+    .price-diff.same  { color: var(--muted); }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 3px 8px;
+    }
+
+    .pill-icon { font-size: 12px; }
+
+    .maps-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 5px 10px;
+      background: rgba(232,255,59,0.1);
+      border-radius: 20px;
+      border: 1px solid rgba(232,255,59,0.2);
+      transition: background 0.15s;
+    }
+
+    .maps-link:hover { background: rgba(232,255,59,0.2); }
+
+    .rank-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0f1923;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+    }
+
+    .rank-badge.rank-2 { background: #c8d4c0; }
+    .rank-badge.rank-3 { background: #cd9c6a; }
+    .rank-badge.rank-n { display: none; }
+
+    /* ─── LOADING ─── */
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+
+    .skel {
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
+    }
+
+    .skel-line { height: 12px; }
+    .skel-w100 { width: 100%; }
+    .skel-w70  { width: 70%; }
+    .skel-w40  { width: 40%; }
+    .skel-price { width: 72px; height: 28px; }
+
+    /* ─── AREA STATS BAR ─── */
+    .area-stats {
+      display: flex;
+      gap: 10px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .area-stats::-webkit-scrollbar { display: none; }
+
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 5px 12px;
+      background: var(--card);
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .stat-val   { font-size: 14px; font-weight: 700; font-family: var(--font-mono); }
+    .stat-val.cheap  { color: var(--cheap); }
+    .stat-val.mid    { color: var(--mid); }
+    .stat-val.pricey { color: var(--pricey); }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: calc(24px + var(--safe-bot));
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 100;
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ─── INSTALL BANNER ─── */
+    .install-banner {
+      display: none;
+      margin: 8px 16px 0;
+      background: rgba(232,255,59,0.08);
+      border: 1px solid rgba(232,255,59,0.25);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 12px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .install-banner.visible { display: flex; }
+    .install-banner .ib-text { flex: 1; color: var(--text); line-height: 1.4; }
+    .install-banner .ib-close { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 4px; }
+
+    /* ─── SCROLLBAR ─── */
+    .results::-webkit-scrollbar { width: 4px; }
+    .results::-webkit-scrollbar-track { background: transparent; }
+    .results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⛽</div>
+      <div class="logo-text">Fuel<span>Near</span></div>
+    </div>
+    <div class="last-updated" id="lastUpdated">—</div>
+  </header>
+
+  <div id="installBanner" class="install-banner">
+    <span style="font-size:18px">📲</span>
+    <span class="ib-text"><strong>Add to home screen</strong> for quick access</span>
+    <button class="ib-close" id="installBtn">Install</button>
+    <button class="ib-close" id="dismissInstall">✕</button>
+  </div>
+
+  <div class="controls">
+    <div class="location-row">
+      <div class="location-display" id="locationDisplay" onclick="requestGPS()">
+        <span class="loc-icon">📍</span>
+        <div class="loc-text">
+          <span class="loc-label">Location</span>
+          <span class="loc-val" id="locationVal">Tap to use GPS</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-icon" title="Enter postcode" onclick="togglePostcode()">🔤</button>
+    </div>
+
+    <div class="postcode-row" id="postcodeRow">
+      <input type="text" id="postcodeInput" placeholder="e.g. PO7 5QP" maxlength="10" autocomplete="postal-code" />
+      <button class="btn" onclick="usePostcode()">Go</button>
+    </div>
+
+    <div class="filter-row">
+      <select id="fuelType" onchange="search()">
+        <option value="E10">⛽ E10 Petrol (standard)</option>
+        <option value="E5">⛽ E5 Super Unleaded</option>
+        <option value="B7">🚗 B7 Diesel</option>
+        <option value="SDV">🚗 Super Diesel</option>
+      </select>
+      <select id="radiusMiles" onchange="search()">
+        <option value="3">3 mi</option>
+        <option value="5" selected>5 mi</option>
+        <option value="10">10 mi</option>
+        <option value="20">20 mi</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- area stats bar (hidden until data loads) -->
+  <div class="area-stats" id="areaStats" style="display:none">
+    <div class="stat-pill">
+      <span class="stat-label">Cheapest</span>
+      <span class="stat-val cheap" id="statMin">—</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">Area avg</span>
+      <span class="stat-val mid" id="statAvg">—</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">Priciest</span>
+      <span class="stat-val pricey" id="statMax">—</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">Stations</span>
+      <span class="stat-val" id="statCount">—</span>
+    </div>
+  </div>
+
+  <!-- sort bar (hidden until data loads) -->
+  <div class="sort-bar" id="sortBar" style="display:none">
+    <div class="sort-tabs">
+      <button class="sort-tab active" data-sort="price_low" onclick="setSort('price_low', this)">Cheapest</button>
+      <button class="sort-tab" data-sort="distance" onclick="setSort('distance', this)">Nearest</button>
+      <button class="sort-tab" data-sort="price_high" onclick="setSort('price_high', this)">Priciest</button>
+    </div>
+    <span class="result-count" id="resultCount"></span>
+  </div>
+
+  <!-- main content area -->
+  <div id="mainContent" class="state-screen">
+    <div class="state-icon">⛽</div>
+    <div class="state-title">Find cheap fuel near you</div>
+    <div class="state-body">Uses live UK government data across 4,000+ stations. Prices updated within 30 minutes of any change.</div>
+    <div class="state-actions">
+      <button class="btn" onclick="requestGPS()">Use my location</button>
+      <button class="btn btn-ghost" onclick="togglePostcode()">Enter postcode</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────
+let currentLat = null, currentLng = null;
+let currentSort = 'price_low';
+let currentStations = [];
+let gpsMode = false;
+let deferredPrompt = null;
+
+const API = 'https://checkfuelprices.co.uk/api/widget/stations';
+
+// ─── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  registerSW();
+  restoreSaved();
+  handleInstall();
+});
+
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+function restoreSaved() {
+  const savedFuel = localStorage.getItem('fuelnear_fuel');
+  const savedRadius = localStorage.getItem('fuelnear_radius');
+  const savedLat = localStorage.getItem('fuelnear_lat');
+  const savedLng = localStorage.getItem('fuelnear_lng');
+  const savedLabel = localStorage.getItem('fuelnear_label');
+  const savedGps = localStorage.getItem('fuelnear_gps');
+
+  if (savedFuel) document.getElementById('fuelType').value = savedFuel;
+  if (savedRadius) document.getElementById('radiusMiles').value = savedRadius;
+
+  if (savedLat && savedLng) {
+    currentLat = parseFloat(savedLat);
+    currentLng = parseFloat(savedLng);
+    gpsMode = savedGps === 'true';
+    document.getElementById('locationVal').textContent = savedLabel || 'Saved location';
+    search();
+  }
+}
+
+// ─── LOCATION ─────────────────────────────────────────────────────
+function requestGPS() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation not supported — use postcode instead');
+    togglePostcode();
+    return;
+  }
+  document.getElementById('locationVal').textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+      gpsMode = true;
+      const label = `GPS · ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
+      document.getElementById('locationVal').textContent = label;
+      save('fuelnear_lat', currentLat);
+      save('fuelnear_lng', currentLng);
+      save('fuelnear_label', label);
+      save('fuelnear_gps', 'true');
+      search();
+    },
+    err => {
+      document.getElementById('locationVal').textContent = 'Tap to use GPS';
+      if (err.code === 1) showToast('Location denied — enter a postcode instead');
+      else showToast('Could not get location — try a postcode');
+      togglePostcode();
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function togglePostcode() {
+  const row = document.getElementById('postcodeRow');
+  const vis = row.classList.toggle('visible');
+  if (vis) document.getElementById('postcodeInput').focus();
+}
+
+async function usePostcode() {
+  const raw = document.getElementById('postcodeInput').value.trim().toUpperCase().replace(/\s+/g, '');
+  if (!raw) { showToast('Enter a postcode first'); return; }
+
+  document.getElementById('locationVal').textContent = 'Looking up…';
+  try {
+    const r = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(raw)}`);
+    const d = await r.json();
+    if (d.status !== 200) throw new Error('Not found');
+    currentLat = d.result.latitude;
+    currentLng = d.result.longitude;
+    gpsMode = false;
+    const label = formatPostcode(raw);
+    document.getElementById('locationVal').textContent = label;
+    save('fuelnear_lat', currentLat);
+    save('fuelnear_lng', currentLng);
+    save('fuelnear_label', label);
+    save('fuelnear_gps', 'false');
+    document.getElementById('postcodeRow').classList.remove('visible');
+    search();
+  } catch {
+    document.getElementById('locationVal').textContent = 'Tap to use GPS';
+    showToast('Postcode not found — check and try again');
+  }
+}
+
+document.getElementById('postcodeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') usePostcode();
+});
+
+function formatPostcode(raw) {
+  raw = raw.replace(/\s+/g, '');
+  return raw.length > 4 ? `${raw.slice(0, -3)} ${raw.slice(-3)}` : raw;
+}
+
+// ─── SEARCH ───────────────────────────────────────────────────────
+async function search() {
+  if (!currentLat || !currentLng) return;
+
+  const fuel   = document.getElementById('fuelType').value;
+  const radius = document.getElementById('radiusMiles').value;
+  save('fuelnear_fuel', fuel);
+  save('fuelnear_radius', radius);
+
+  showSkeleton();
+
+  const url = `${API}?lat=${currentLat}&lng=${currentLng}&fuel=${fuel}&radius=${radius}&limit=20&sort=${currentSort}`;
+
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('API error');
+    const data = await r.json();
+    if (!data.success) throw new Error('No data');
+    currentStations = data.stations || [];
+    renderResults(data);
+  } catch(e) {
+    showError();
+  }
+}
+
+function setSort(sort, btn) {
+  currentSort = sort;
+  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  search();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────
+function renderResults(data) {
+  const stations = data.stations || [];
+  const stats    = data.area_stats || {};
+
+  // area stats bar
+  if (stats.min !== undefined) {
+    document.getElementById('statMin').textContent   = `${stats.min}p`;
+    document.getElementById('statAvg').textContent   = `${stats.avg}p`;
+    document.getElementById('statMax').textContent   = `${stats.max}p`;
+    document.getElementById('statCount').textContent = stats.count;
+    document.getElementById('areaStats').style.display = '';
+  }
+
+  // sort bar
+  document.getElementById('sortBar').style.display = '';
+  document.getElementById('resultCount').textContent = `${stations.length} station${stations.length !== 1 ? 's' : ''}`;
+
+  // updated time
+  const now = new Date();
+  document.getElementById('lastUpdated').innerHTML = `Updated<br>${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+
+  const el = document.getElementById('mainContent');
+  el.className = 'results';
+
+  if (!stations.length) {
+    el.innerHTML = `
+      <div class="state-screen">
+        <div class="state-icon">🔍</div>
+        <div class="state-title">No stations found</div>
+        <div class="state-body">Try increasing the search radius or check your location.</div>
+      </div>`;
+    return;
+  }
+
+  // sort by price to determine rank (cheapest=1)
+  const sorted = [...stations].sort((a,b) => a.price - b.price);
+  const rankMap = {};
+  sorted.forEach((s, i) => rankMap[s.id] = i + 1);
+
+  el.innerHTML = stations.map(s => stationCard(s, stats, rankMap[s.id])).join('');
+}
+
+function priceColor(diff) {
+  if (diff <= -5) return 'var(--cheap)';
+  if (diff <= 0)  return 'var(--accent2)';
+  if (diff <= 5)  return 'var(--mid)';
+  return 'var(--pricey)';
+}
+
+function stationCard(s, stats, rank) {
+  const diff     = s.diff_from_avg ?? (s.price - (stats.avg || s.price));
+  const color    = priceColor(diff);
+  const diffSign = diff > 0 ? '+' : '';
+  const diffCls  = diff < 0 ? 'below' : diff > 0 ? 'above' : 'same';
+
+  const rankBadgeCls = rank === 1 ? '' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-n';
+  const rankLabel    = rank <= 3 ? `<div class="rank-badge ${rankBadgeCls}">${rank}</div>` : '';
+
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving`;
+
+  const updated = s.price_updated ? formatUpdated(s.price_updated) : '';
+
+  const addr = s.address ? titleCase(s.address.split(',').slice(0,2).join(', ')) : 'Unknown';
+
+  return `
+  <div class="station-card" style="--price-color:${color}">
+    ${rankLabel}
+    <div class="card-top">
+      <div class="station-info">
+        <div class="brand-badge">
+          <div class="brand-dot"></div>
+          ${escHtml(s.brand || 'Unknown')}
+        </div>
+        <div class="station-address">${escHtml(addr)}</div>
+        <div class="station-postcode">${escHtml(s.postcode || '')}</div>
+      </div>
+      <div class="price-block">
+        <div class="price-pence">${s.price}<small style="font-size:14px;font-weight:500">p</small></div>
+        <div class="price-unit">per litre</div>
+        ${diff !== 0 ? `<div class="price-diff ${diffCls}">${diffSign}${diff.toFixed(1)}p vs avg</div>` : ''}
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="meta-pills">
+        <span class="pill"><span class="pill-icon">📏</span>${s.distance.toFixed(1)} mi</span>
+        ${updated ? `<span class="pill"><span class="pill-icon">🕐</span>${updated}</span>` : ''}
+      </div>
+      <a class="maps-link" href="${mapsUrl}" target="_blank" rel="noopener">
+        🗺 Directions
+      </a>
+    </div>
+  </div>`;
+}
+
+function formatUpdated(str) {
+  try {
+    const d = new Date(str.includes('/') ? str.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1') : str);
+    if (isNaN(d)) return '';
+    const now = new Date();
+    const h = Math.round((now - d) / 3600000);
+    if (h < 1)  return 'Just updated';
+    if (h < 24) return `${h}h ago`;
+    const days = Math.round(h / 24);
+    return `${days}d ago`;
+  } catch { return ''; }
+}
+
+function titleCase(str) {
+  return str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── SKELETON ─────────────────────────────────────────────────────
+function showSkeleton() {
+  document.getElementById('areaStats').style.display = 'none';
+  document.getElementById('sortBar').style.display = 'none';
+  const el = document.getElementById('mainContent');
+  el.className = 'results';
+  el.innerHTML = Array(5).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <div class="skel skel-line skel-w40"></div>
+          <div class="skel skel-line skel-w70"></div>
+          <div class="skel skel-line skel-w40"></div>
+        </div>
+        <div class="skel skel-price" style="margin-left:12px"></div>
+      </div>
+      <div class="skel skel-line skel-w100" style="height:1px"></div>
+      <div style="display:flex;gap:8px">
+        <div class="skel skel-line skel-w40"></div>
+        <div class="skel skel-line skel-w40"></div>
+      </div>
+    </div>`).join('');
+}
+
+function showError() {
+  document.getElementById('areaStats').style.display = 'none';
+  document.getElementById('sortBar').style.display = 'none';
+  const el = document.getElementById('mainContent');
+  el.className = 'state-screen';
+  el.innerHTML = `
+    <div class="state-icon">⚠️</div>
+    <div class="state-title">Couldn't load prices</div>
+    <div class="state-body">Check your connection and try again. Price data comes from the UK Government Fuel Finder scheme.</div>
+    <div class="state-actions"><button class="btn" onclick="search()">Retry</button></div>`;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────
+function showToast(msg, dur = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ─── INSTALL ──────────────────────────────────────────────────────
+function handleInstall() {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem('fuelnear_installed')) {
+      document.getElementById('installBanner').classList.add('visible');
+    }
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.setItem('fuelnear_installed', '1');
+      document.getElementById('installBanner').classList.remove('visible');
+    }
+    deferredPrompt = null;
+  });
+
+  document.getElementById('dismissInstall').addEventListener('click', () => {
+    document.getElementById('installBanner').classList.remove('visible');
+    localStorage.setItem('fuelnear_installed', '1');
+  });
+}
+
+function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
+</script>
+</body>
+</html>
