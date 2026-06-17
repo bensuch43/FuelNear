@@ -2,7 +2,7 @@
   "name": "FuelNear – UK Fuel Price Finder",
   "short_name": "FuelNear",
   "description": "Find the cheapest petrol and diesel near you across 4,000+ UK stations",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0f1923",
   "theme_color": "#0f1923",
