@@ -7,583 +7,223 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="FuelNear" />
-  <meta name="description" content="Find the cheapest fuel near you across 4,000+ UK stations" />
+  <meta name="description" content="Find the cheapest fuel near you across 8,000+ UK stations" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="icon" href="icons/icon-192.png" />
   <title>FuelNear</title>
-
   <style>
-    /* ─── TOKENS ─── */
     :root {
-      --bg:        #0f1923;
-      --surface:   #162030;
-      --card:      #1d2d3e;
-      --border:    #243548;
-      --accent:    #e8ff3b;
-      --accent2:   #3bffb0;
-      --text:      #e8edf2;
-      --muted:     #7a8fa6;
-      --danger:    #ff5f5f;
-      --cheap:     #3bffb0;
-      --mid:       #ffcc3b;
-      --pricey:    #ff8c3b;
-
-      --font-mono: 'DM Mono', 'Fira Mono', monospace;
-      --font-body: 'Inter', system-ui, sans-serif;
-
-      --r-sm: 8px;
-      --r-md: 14px;
-      --r-lg: 20px;
-
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bot: env(safe-area-inset-bottom, 0px);
+      --bg:      #0f1923;
+      --surf:    #162030;
+      --card:    #1d2d3e;
+      --bdr:     #243548;
+      --acc:     #e8ff3b;
+      --acc2:    #3bffb0;
+      --text:    #e8edf2;
+      --muted:   #7a8fa6;
+      --cheap:   #3bffb0;
+      --mid:     #ffcc3b;
+      --pricey:  #ff8c3b;
+      --danger:  #ff5f5f;
+      --mono:    'DM Mono','Fira Mono',monospace;
+      --body:    'Inter',system-ui,sans-serif;
+      --r:       12px;
+      --safe-t:  env(safe-area-inset-top,0px);
+      --safe-b:  env(safe-area-inset-bottom,0px);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: var(--body); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
 
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      -webkit-font-smoothing: antialiased;
-      overscroll-behavior: none;
-    }
+    .app { display: flex; flex-direction: column; height: 100dvh;
+      max-width: 480px; margin: 0 auto;
+      padding-top: var(--safe-t); padding-bottom: var(--safe-b); }
 
-    /* ─── LAYOUT ─── */
-    .app {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      max-width: 480px;
-      margin: 0 auto;
-      padding-top: var(--safe-top);
-      padding-bottom: var(--safe-bot);
-    }
+    /* HEADER */
+    header { padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--bdr); background: var(--bg); position: sticky;
+      top: var(--safe-t); z-index: 10; }
+    .logo { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .logo-icon { width: 30px; height: 30px; background: var(--acc); border-radius: 7px;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-text span { color: var(--acc); }
+    .hdr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .last-updated { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.3; }
+    .refresh-btn { background: none; border: none; color: var(--muted); font-size: 15px;
+      cursor: pointer; padding: 2px 4px; transition: color 0.15s; }
+    .refresh-btn:hover { color: var(--acc); }
+    .refresh-btn.spinning { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ─── HEADER ─── */
-    header {
-      padding: 16px 20px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: var(--safe-top);
-      z-index: 10;
-    }
+    /* CONTROLS */
+    .controls { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;
+      border-bottom: 1px solid var(--bdr); background: var(--surf); }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-    }
+    .location-row { display: flex; align-items: stretch; gap: 8px; }
+    .location-btn { flex: 1; background: var(--card); border: 1px solid var(--bdr);
+      border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--text);
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      transition: border-color 0.15s; text-align: left; font-family: var(--body); min-width: 0; }
+    .location-btn:hover { border-color: var(--acc); }
+    .location-btn .loc-icon { font-size: 15px; flex-shrink: 0; }
+    .location-btn .loc-inner { flex: 1; min-width: 0; }
+    .location-btn .loc-label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 1px; }
+    .location-btn .loc-val { font-size: 13px; font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-    }
+    .postcode-row { display: none; gap: 8px; }
+    .postcode-row.open { display: flex; }
 
-    .logo-text {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
+    input[type="text"] { flex: 1; background: var(--card); border: 1px solid var(--bdr);
+      border-radius: var(--r); padding: 10px 12px; font-size: 14px; color: var(--text);
+      outline: none; font-family: var(--body); transition: border-color 0.15s; }
+    input::placeholder { color: var(--muted); }
+    input:focus { border-color: var(--acc); }
 
-    .logo-text span { color: var(--accent); }
+    .filter-row { display: flex; gap: 8px; }
 
-    .last-updated {
-      font-size: 10px;
-      color: var(--muted);
-      text-align: right;
-      line-height: 1.3;
-    }
+    select { flex: 1; background: var(--card); border: 1px solid var(--bdr);
+      border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--text);
+      outline: none; font-family: var(--body); cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8fa6' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+      transition: border-color 0.15s; }
+    select:focus { border-color: var(--acc); }
 
-    /* ─── CONTROLS ─── */
-    .controls {
-      padding: 14px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .location-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .location-display {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 10px 12px;
-      font-size: 13px;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 42px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-
-    .location-display:hover { border-color: var(--accent); }
-    .location-display .loc-icon { font-size: 15px; flex-shrink: 0; }
-    .location-display .loc-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .location-display .loc-label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 1px; }
-    .location-display .loc-val { font-size: 13px; font-weight: 500; }
-
-    .postcode-row {
-      display: none;
-      gap: 8px;
-    }
-
-    .postcode-row.visible { display: flex; }
-
-    input[type="text"] {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 10px 12px;
-      font-size: 14px;
-      color: var(--text);
-      outline: none;
-      font-family: var(--font-body);
-      transition: border-color 0.15s;
-    }
-
-    input[type="text"]::placeholder { color: var(--muted); }
-    input[type="text"]:focus { border-color: var(--accent); }
-
-    .filter-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    select {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 10px 12px;
-      font-size: 13px;
-      color: var(--text);
-      outline: none;
-      font-family: var(--font-body);
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8fa6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
-      transition: border-color 0.15s;
-    }
-
-    select:focus { border-color: var(--accent); }
-
-    .btn {
-      background: var(--accent);
-      color: #0f1923;
-      border: none;
-      border-radius: var(--r-sm);
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: var(--font-body);
-      white-space: nowrap;
-      transition: opacity 0.15s, transform 0.1s;
-      letter-spacing: 0.2px;
-    }
-
+    .btn { background: var(--acc); color: #0f1923; border: none; border-radius: var(--r);
+      padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: var(--body); white-space: nowrap; transition: opacity 0.15s, transform 0.1s;
+      flex-shrink: 0; }
     .btn:active { transform: scale(0.97); opacity: 0.85; }
+    .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--bdr); }
+    .btn-icon { padding: 10px 11px; font-size: 15px; line-height: 1; flex-shrink: 0; }
 
-    .btn-ghost {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
+    /* DATA SOURCE NOTICE */
+    .data-notice { display: flex; align-items: center; gap: 8px; padding: 7px 16px;
+      background: var(--surf); border-bottom: 1px solid var(--bdr); font-size: 11px;
+      color: var(--muted); }
+    .data-notice.stale { background: rgba(255,95,95,0.06); color: var(--danger); }
+    .data-notice.fresh { color: var(--cheap); }
 
-    .btn-sm {
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-
-    .btn-icon {
-      padding: 10px;
-      font-size: 15px;
-      line-height: 1;
-    }
-
-    /* ─── SORT BAR ─── */
-    .sort-bar {
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sort-tabs {
-      display: flex;
-      gap: 4px;
-      background: var(--surface);
-      border-radius: var(--r-sm);
-      padding: 3px;
-    }
-
-    .sort-tab {
-      padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all 0.15s;
-      border: none;
-      background: none;
-      font-family: var(--font-body);
-    }
-
-    .sort-tab.active {
-      background: var(--card);
-      color: var(--text);
-    }
-
-    .result-count {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* ─── RESULTS ─── */
-    .results {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* ─── STATE SCREENS ─── */
-    .state-screen {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 32px 24px;
-      text-align: center;
-    }
-
-    .state-icon { font-size: 48px; }
-
-    .state-title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .state-body { font-size: 14px; color: var(--muted); line-height: 1.5; }
-
-    .state-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
-
-    /* ─── STATION CARD ─── */
-    .station-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: border-color 0.15s;
-      cursor: default;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .station-card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: var(--price-color, var(--border));
-      border-radius: 3px 0 0 3px;
-    }
-
-    .station-card:hover { border-color: rgba(232,255,59,0.3); }
-
-    .card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .station-info { flex: 1; min-width: 0; }
-
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-
-    .brand-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--price-color, var(--muted));
-    }
-
-    .station-address {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.4;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .station-postcode {
-      font-size: 11px;
-      color: var(--accent2);
-      font-family: var(--font-mono);
-      margin-top: 3px;
-    }
-
-    .price-block {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      flex-shrink: 0;
-    }
-
-    .price-pence {
-      font-size: 28px;
-      font-weight: 800;
-      font-family: var(--font-mono);
-      line-height: 1;
-      color: var(--price-color, var(--text));
-      letter-spacing: -1px;
-    }
-
-    .price-unit {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: right;
-      margin-top: 2px;
-    }
-
-    .price-diff {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      margin-top: 3px;
-      font-weight: 600;
-    }
-
-    .price-diff.above { color: var(--pricey); }
-    .price-diff.below { color: var(--cheap); }
-    .price-diff.same  { color: var(--muted); }
-
-    .card-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 6px;
-      border-top: 1px solid var(--border);
-    }
-
-    .meta-pills {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--muted);
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 3px 8px;
-    }
-
-    .pill-icon { font-size: 12px; }
-
-    .maps-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 5px 10px;
-      background: rgba(232,255,59,0.1);
-      border-radius: 20px;
-      border: 1px solid rgba(232,255,59,0.2);
-      transition: background 0.15s;
-    }
-
-    .maps-link:hover { background: rgba(232,255,59,0.2); }
-
-    .rank-badge {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #0f1923;
-      font-size: 10px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-    }
-
-    .rank-badge.rank-2 { background: #c8d4c0; }
-    .rank-badge.rank-3 { background: #cd9c6a; }
-    .rank-badge.rank-n { display: none; }
-
-    /* ─── LOADING ─── */
-    .skeleton-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    @keyframes shimmer {
-      0%   { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-
-    .skel {
-      border-radius: 4px;
-      background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
-      background-size: 800px 100%;
-      animation: shimmer 1.4s infinite linear;
-    }
-
-    .skel-line { height: 12px; }
-    .skel-w100 { width: 100%; }
-    .skel-w70  { width: 70%; }
-    .skel-w40  { width: 40%; }
-    .skel-price { width: 72px; height: 28px; }
-
-    /* ─── AREA STATS BAR ─── */
-    .area-stats {
-      display: flex;
-      gap: 10px;
-      padding: 8px 16px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
+    /* STATS BAR */
+    .area-stats { display: flex; gap: 8px; padding: 8px 16px;
+      background: var(--bg); border-bottom: 1px solid var(--bdr);
+      overflow-x: auto; scrollbar-width: none; }
     .area-stats::-webkit-scrollbar { display: none; }
-
-    .stat-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 5px 12px;
-      background: var(--card);
-      border-radius: var(--r-sm);
-      border: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .stat-val   { font-size: 14px; font-weight: 700; font-family: var(--font-mono); }
+    .stat-pill { display: flex; flex-direction: column; align-items: center;
+      padding: 5px 12px; background: var(--card); border-radius: 8px;
+      border: 1px solid var(--bdr); flex-shrink: 0; }
+    .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 2px; }
+    .stat-val { font-size: 14px; font-weight: 700; font-family: var(--mono); }
     .stat-val.cheap  { color: var(--cheap); }
     .stat-val.mid    { color: var(--mid); }
     .stat-val.pricey { color: var(--pricey); }
 
-    /* ─── TOAST ─── */
-    .toast {
-      position: fixed;
-      bottom: calc(24px + var(--safe-bot));
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      z-index: 100;
-      opacity: 0;
-      transition: transform 0.3s, opacity 0.3s;
-      white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    }
+    /* SORT BAR */
+    .sort-bar { display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--bdr); }
+    .sort-tabs { display: flex; gap: 3px; background: var(--surf);
+      border-radius: 8px; padding: 3px; }
+    .sort-tab { padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px;
+      cursor: pointer; color: var(--muted); transition: all 0.15s; border: none;
+      background: none; font-family: var(--body); }
+    .sort-tab.active { background: var(--card); color: var(--text); }
+    .result-count { font-size: 11px; color: var(--muted); }
 
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
+    /* RESULTS LIST */
+    .results { flex: 1; overflow-y: auto; padding: 10px 12px;
+      display: flex; flex-direction: column; gap: 7px; -webkit-overflow-scrolling: touch; }
+    .results::-webkit-scrollbar { width: 3px; }
+    .results::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
 
-    /* ─── INSTALL BANNER ─── */
-    .install-banner {
-      display: none;
-      margin: 8px 16px 0;
-      background: rgba(232,255,59,0.08);
-      border: 1px solid rgba(232,255,59,0.25);
-      border-radius: var(--r-sm);
-      padding: 10px 12px;
-      font-size: 12px;
-      align-items: center;
-      gap: 8px;
-    }
+    /* STATION CARD */
+    .card { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--r);
+      padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 8px;
+      position: relative; overflow: hidden; }
+    .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--pc, var(--bdr)); }
+    .card-top { display: flex; align-items: flex-start; gap: 10px; }
+    .card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 
-    .install-banner.visible { display: flex; }
-    .install-banner .ib-text { flex: 1; color: var(--text); line-height: 1.4; }
-    .install-banner .ib-close { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 4px; }
+    .brand-row { display: flex; align-items: center; gap: 6px; }
+    .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pc, var(--muted)); flex-shrink: 0; }
+    .brand-name { font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.4px; color: var(--text); }
+    .stale-flag { font-size: 10px; color: var(--danger); margin-left: 4px; }
 
-    /* ─── SCROLLBAR ─── */
-    .results::-webkit-scrollbar { width: 4px; }
-    .results::-webkit-scrollbar-track { background: transparent; }
-    .results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .addr { font-size: 12px; color: var(--muted); line-height: 1.3;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .postcode-tag { font-size: 11px; color: var(--acc2); font-family: var(--mono); }
+
+    .price-col { display: flex; flex-direction: column; align-items: flex-end;
+      flex-shrink: 0; padding-left: 4px; }
+    .price-big { font-size: 26px; font-weight: 800; font-family: var(--mono);
+      line-height: 1; color: var(--pc, var(--text)); letter-spacing: -1px; white-space: nowrap; }
+    .price-big sup { font-size: 14px; font-weight: 600; vertical-align: top;
+      margin-top: 2px; margin-right: 1px; }
+    .price-unit { font-size: 10px; color: var(--muted); text-align: right; margin-top: 1px; }
+    .price-diff { font-size: 10px; font-family: var(--mono); font-weight: 700; margin-top: 3px; }
+    .price-diff.lo { color: var(--cheap); }
+    .price-diff.hi { color: var(--pricey); }
+    .price-diff.eq { color: var(--muted); }
+
+    .card-foot { display: flex; align-items: center; justify-content: space-between;
+      padding-top: 7px; border-top: 1px solid var(--bdr); gap: 8px; }
+    .pills { display: flex; gap: 5px; flex-wrap: nowrap; min-width: 0; overflow: hidden; }
+    .pill { display: inline-flex; align-items: center; gap: 3px; font-size: 11px;
+      color: var(--muted); background: var(--surf); border-radius: 20px; padding: 3px 7px;
+      white-space: nowrap; flex-shrink: 0; }
+    .dir-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+      font-weight: 700; color: var(--acc); text-decoration: none; padding: 5px 10px;
+      background: rgba(232,255,59,0.1); border-radius: 20px;
+      border: 1px solid rgba(232,255,59,0.2); transition: background 0.15s; flex-shrink: 0; }
+    .dir-btn:hover { background: rgba(232,255,59,0.2); }
+
+    .rank-badge { position: absolute; top: 9px; right: 9px; width: 18px; height: 18px;
+      border-radius: 50%; font-size: 9px; font-weight: 800; display: flex;
+      align-items: center; justify-content: center; font-family: var(--mono); }
+    .rank-1 { background: var(--acc); color: #0f1923; }
+    .rank-2 { background: #c0c8b8; color: #0f1923; }
+    .rank-3 { background: #b08060; color: #fff; }
+
+    /* STATE SCREENS */
+    .state { flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; padding: 32px 20px; text-align: center; }
+    .state-icon { font-size: 44px; }
+    .state-title { font-size: 17px; font-weight: 700; }
+    .state-body { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 280px; }
+    .state-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+
+    /* SKELETON */
+    .skel-card { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--r); padding: 12px; }
+    .sk { border-radius: 4px; background: linear-gradient(90deg,var(--surf) 25%,var(--bdr) 50%,var(--surf) 75%);
+      background-size: 600px 100%; animation: sh 1.3s infinite linear; height: 11px; margin-bottom: 6px; }
+    @keyframes sh { 0% { background-position:-300px 0 } 100% { background-position:300px 0 } }
+
+    /* LOADING BAR */
+    .load-bar { height: 2px; background: var(--surf); overflow: hidden; }
+    .load-bar-inner { height: 100%; background: var(--acc); width: 0; transition: width 0.3s; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: calc(20px + var(--safe-b)); left: 50%;
+      transform: translateX(-50%) translateY(60px); background: var(--card);
+      border: 1px solid var(--bdr); color: var(--text); padding: 9px 16px;
+      border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 100;
+      opacity: 0; transition: transform 0.25s, opacity 0.25s; white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5); pointer-events: none; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* INSTALL */
+    .install-bar { display: none; align-items: center; gap: 8px; padding: 9px 16px;
+      background: rgba(232,255,59,0.07); border-bottom: 1px solid rgba(232,255,59,0.2);
+      font-size: 12px; }
+    .install-bar.show { display: flex; }
+    .ib-text { flex: 1; color: var(--text); }
+    .ib-close { background: none; border: none; color: var(--muted); font-size: 16px;
+      cursor: pointer; padding: 2px 5px; }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -591,18 +231,21 @@
   </style>
 </head>
 <body>
-
 <div class="app">
+
   <header>
     <div class="logo">
       <div class="logo-icon">⛽</div>
       <div class="logo-text">Fuel<span>Near</span></div>
     </div>
-    <div class="last-updated" id="lastUpdated">—</div>
+    <div class="hdr-right">
+      <div class="last-updated" id="lastUpdated">—</div>
+      <button class="refresh-btn" id="refreshBtn" onclick="refresh()" title="Refresh prices">↻</button>
+    </div>
   </header>
 
-  <div id="installBanner" class="install-banner">
-    <span style="font-size:18px">📲</span>
+  <div class="install-bar" id="installBar">
+    <span>📲</span>
     <span class="ib-text"><strong>Add to home screen</strong> for quick access</span>
     <button class="ib-close" id="installBtn">Install</button>
     <button class="ib-close" id="dismissInstall">✕</button>
@@ -610,29 +253,29 @@
 
   <div class="controls">
     <div class="location-row">
-      <div class="location-display" id="locationDisplay" onclick="requestGPS()">
+      <button class="location-btn" id="locBtn" onclick="requestGPS()">
         <span class="loc-icon">📍</span>
-        <div class="loc-text">
+        <span class="loc-inner">
           <span class="loc-label">Location</span>
-          <span class="loc-val" id="locationVal">Tap to use GPS</span>
-        </div>
-      </div>
+          <span class="loc-val" id="locVal">Tap to use GPS</span>
+        </span>
+      </button>
       <button class="btn btn-ghost btn-icon" title="Enter postcode" onclick="togglePostcode()">🔤</button>
     </div>
 
-    <div class="postcode-row" id="postcodeRow">
-      <input type="text" id="postcodeInput" placeholder="e.g. PO7 5QP" maxlength="10" autocomplete="postal-code" />
+    <div class="postcode-row" id="pcRow">
+      <input type="text" id="pcInput" placeholder="e.g. PO7 7PW" maxlength="10" autocomplete="postal-code" />
       <button class="btn" onclick="usePostcode()">Go</button>
     </div>
 
     <div class="filter-row">
-      <select id="fuelType" onchange="search()">
-        <option value="E10">⛽ E10 Petrol (standard)</option>
+      <select id="fuelSel" onchange="doSearch()">
+        <option value="E10">⛽ E10 Petrol</option>
         <option value="E5">⛽ E5 Super Unleaded</option>
-        <option value="B7">🚗 B7 Diesel</option>
+        <option value="B7" selected>🚗 B7 Diesel</option>
         <option value="SDV">🚗 Super Diesel</option>
       </select>
-      <select id="radiusMiles" onchange="search()">
+      <select id="radSel" onchange="doSearch()">
         <option value="3">3 mi</option>
         <option value="5" selected>5 mi</option>
         <option value="10">10 mi</option>
@@ -641,41 +284,32 @@
     </div>
   </div>
 
-  <!-- area stats bar (hidden until data loads) -->
-  <div class="area-stats" id="areaStats" style="display:none">
-    <div class="stat-pill">
-      <span class="stat-label">Cheapest</span>
-      <span class="stat-val cheap" id="statMin">—</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-label">Area avg</span>
-      <span class="stat-val mid" id="statAvg">—</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-label">Priciest</span>
-      <span class="stat-val pricey" id="statMax">—</span>
-    </div>
-    <div class="stat-pill">
-      <span class="stat-label">Stations</span>
-      <span class="stat-val" id="statCount">—</span>
-    </div>
+  <div class="load-bar"><div class="load-bar-inner" id="loadBar"></div></div>
+
+  <div class="area-stats" id="statsBar" style="display:none">
+    <div class="stat-pill"><span class="stat-label">Cheapest</span><span class="stat-val cheap" id="sMin">—</span></div>
+    <div class="stat-pill"><span class="stat-label">Area avg</span><span class="stat-val mid"   id="sAvg">—</span></div>
+    <div class="stat-pill"><span class="stat-label">Priciest</span><span class="stat-val pricey" id="sMax">—</span></div>
+    <div class="stat-pill"><span class="stat-label">Stations</span><span class="stat-val"        id="sCnt">—</span></div>
+    <div class="stat-pill"><span class="stat-label">Data age</span><span class="stat-val"        id="sAge">—</span></div>
   </div>
 
-  <!-- sort bar (hidden until data loads) -->
+  <div class="data-notice" id="dataNotice" style="display:none">
+    <span id="dataNoticeText"></span>
+  </div>
+
   <div class="sort-bar" id="sortBar" style="display:none">
     <div class="sort-tabs">
-      <button class="sort-tab active" data-sort="price_low" onclick="setSort('price_low', this)">Cheapest</button>
-      <button class="sort-tab" data-sort="distance" onclick="setSort('distance', this)">Nearest</button>
-      <button class="sort-tab" data-sort="price_high" onclick="setSort('price_high', this)">Priciest</button>
+      <button class="sort-tab active" onclick="setSort('price',this)">Cheapest</button>
+      <button class="sort-tab"        onclick="setSort('dist',this)">Nearest</button>
     </div>
-    <span class="result-count" id="resultCount"></span>
+    <span class="result-count" id="rCount"></span>
   </div>
 
-  <!-- main content area -->
-  <div id="mainContent" class="state-screen">
+  <div id="main" class="state">
     <div class="state-icon">⛽</div>
     <div class="state-title">Find cheap fuel near you</div>
-    <div class="state-body">Uses live UK government data across 4,000+ stations. Prices updated within 30 minutes of any change.</div>
+    <div class="state-body">Live prices from 8,000+ UK stations via the government Fuel Finder scheme.</div>
     <div class="state-actions">
       <button class="btn" onclick="requestGPS()">Use my location</button>
       <button class="btn btn-ghost" onclick="togglePostcode()">Enter postcode</button>
@@ -686,340 +320,406 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────────────
-let currentLat = null, currentLng = null;
-let currentSort = 'price_low';
-let currentStations = [];
-let gpsMode = false;
+// ── CONFIG ──────────────────────────────────────────────────────
+// The gov CSV is large (~2MB). We cache it for 30 min in memory.
+// Two sources: primary = gov CSV direct; fallback = CMA open data.
+const CSV_URL = 'https://www.fuel-finder.service.gov.uk/data/fuel-prices-data.csv';
+const CSV_CORS = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
+
+// Fuel type column names in the CSV
+const FUEL_COLS = { E10: 'E10', E5: 'E5', B7: 'B7', SDV: 'SDV' };
+
+// ── STATE ────────────────────────────────────────────────────────
+let lat = null, lng = null;
+let sortMode = 'price';
+let csvCache = null, csvCacheTime = 0;
 let deferredPrompt = null;
 
-const API = 'https://checkfuelprices.co.uk/api/widget/stations';
-
-// ─── INIT ─────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  registerSW();
-  restoreSaved();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  restorePrefs();
   handleInstall();
 });
 
-function registerSW() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+function restorePrefs() {
+  const f = ls('fn_fuel'), r = ls('fn_rad'), la = ls('fn_lat'), lo = ls('fn_lng'), lb = ls('fn_label');
+  if (f) document.getElementById('fuelSel').value = f;
+  if (r) document.getElementById('radSel').value = r;
+  if (la && lo) {
+    lat = +la; lng = +lo;
+    document.getElementById('locVal').textContent = lb || 'Saved location';
+    doSearch();
   }
 }
 
-function restoreSaved() {
-  const savedFuel = localStorage.getItem('fuelnear_fuel');
-  const savedRadius = localStorage.getItem('fuelnear_radius');
-  const savedLat = localStorage.getItem('fuelnear_lat');
-  const savedLng = localStorage.getItem('fuelnear_lng');
-  const savedLabel = localStorage.getItem('fuelnear_label');
-  const savedGps = localStorage.getItem('fuelnear_gps');
-
-  if (savedFuel) document.getElementById('fuelType').value = savedFuel;
-  if (savedRadius) document.getElementById('radiusMiles').value = savedRadius;
-
-  if (savedLat && savedLng) {
-    currentLat = parseFloat(savedLat);
-    currentLng = parseFloat(savedLng);
-    gpsMode = savedGps === 'true';
-    document.getElementById('locationVal').textContent = savedLabel || 'Saved location';
-    search();
-  }
-}
-
-// ─── LOCATION ─────────────────────────────────────────────────────
+// ── LOCATION ─────────────────────────────────────────────────────
 function requestGPS() {
-  if (!navigator.geolocation) {
-    showToast('Geolocation not supported — use postcode instead');
-    togglePostcode();
-    return;
-  }
-  document.getElementById('locationVal').textContent = 'Locating…';
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
-      gpsMode = true;
-      const label = `GPS · ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
-      document.getElementById('locationVal').textContent = label;
-      save('fuelnear_lat', currentLat);
-      save('fuelnear_lng', currentLng);
-      save('fuelnear_label', label);
-      save('fuelnear_gps', 'true');
-      search();
-    },
-    err => {
-      document.getElementById('locationVal').textContent = 'Tap to use GPS';
-      if (err.code === 1) showToast('Location denied — enter a postcode instead');
-      else showToast('Could not get location — try a postcode');
-      togglePostcode();
-    },
-    { timeout: 10000, maximumAge: 60000 }
-  );
+  if (!navigator.geolocation) { showToast('GPS not supported — use postcode'); togglePostcode(); return; }
+  setLocVal('Locating…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    lat = pos.coords.latitude; lng = pos.coords.longitude;
+    const label = `GPS · ${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    setLocVal(label);
+    ss('fn_lat', lat); ss('fn_lng', lng); ss('fn_label', label);
+    doSearch();
+  }, err => {
+    setLocVal('Tap to use GPS');
+    showToast(err.code === 1 ? 'Location denied — enter a postcode' : 'Location failed — try postcode');
+    document.getElementById('pcRow').classList.add('open');
+    document.getElementById('pcInput').focus();
+  }, { timeout: 10000, maximumAge: 60000 });
 }
 
 function togglePostcode() {
-  const row = document.getElementById('postcodeRow');
-  const vis = row.classList.toggle('visible');
-  if (vis) document.getElementById('postcodeInput').focus();
+  const row = document.getElementById('pcRow');
+  row.classList.toggle('open');
+  if (row.classList.contains('open')) document.getElementById('pcInput').focus();
 }
 
 async function usePostcode() {
-  const raw = document.getElementById('postcodeInput').value.trim().toUpperCase().replace(/\s+/g, '');
+  const raw = document.getElementById('pcInput').value.trim().toUpperCase().replace(/\s/g,'');
   if (!raw) { showToast('Enter a postcode first'); return; }
-
-  document.getElementById('locationVal').textContent = 'Looking up…';
+  setLocVal('Looking up…');
   try {
-    const r = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(raw)}`);
-    const d = await r.json();
-    if (d.status !== 200) throw new Error('Not found');
-    currentLat = d.result.latitude;
-    currentLng = d.result.longitude;
-    gpsMode = false;
-    const label = formatPostcode(raw);
-    document.getElementById('locationVal').textContent = label;
-    save('fuelnear_lat', currentLat);
-    save('fuelnear_lng', currentLng);
-    save('fuelnear_label', label);
-    save('fuelnear_gps', 'false');
-    document.getElementById('postcodeRow').classList.remove('visible');
-    search();
+    const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(raw)}`);
+    const d = await res.json();
+    if (d.status !== 200) throw new Error();
+    lat = d.result.latitude; lng = d.result.longitude;
+    const label = fmtPC(raw);
+    setLocVal(label);
+    ss('fn_lat', lat); ss('fn_lng', lng); ss('fn_label', label);
+    document.getElementById('pcRow').classList.remove('open');
+    doSearch();
   } catch {
-    document.getElementById('locationVal').textContent = 'Tap to use GPS';
-    showToast('Postcode not found — check and try again');
+    setLocVal('Tap to use GPS');
+    showToast('Postcode not found');
   }
 }
 
-document.getElementById('postcodeInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') usePostcode();
-});
+document.getElementById('pcInput').addEventListener('keydown', e => { if (e.key === 'Enter') usePostcode(); });
+function setLocVal(t) { document.getElementById('locVal').textContent = t; }
+function fmtPC(raw) { return raw.length > 3 ? `${raw.slice(0,-3)} ${raw.slice(-3)}` : raw; }
 
-function formatPostcode(raw) {
-  raw = raw.replace(/\s+/g, '');
-  return raw.length > 4 ? `${raw.slice(0, -3)} ${raw.slice(-3)}` : raw;
-}
-
-// ─── SEARCH ───────────────────────────────────────────────────────
-async function search() {
-  if (!currentLat || !currentLng) return;
-
-  const fuel   = document.getElementById('fuelType').value;
-  const radius = document.getElementById('radiusMiles').value;
-  save('fuelnear_fuel', fuel);
-  save('fuelnear_radius', radius);
+// ── SEARCH ────────────────────────────────────────────────────────
+async function doSearch() {
+  if (!lat || !lng) return;
+  const fuel   = document.getElementById('fuelSel').value;
+  const radius = +document.getElementById('radSel').value;
+  ss('fn_fuel', fuel); ss('fn_rad', radius);
 
   showSkeleton();
-
-  const url = `${API}?lat=${currentLat}&lng=${currentLng}&fuel=${fuel}&radius=${radius}&limit=20&sort=${currentSort}`;
+  progress(10);
 
   try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('API error');
-    const data = await r.json();
-    if (!data.success) throw new Error('No data');
-    currentStations = data.stations || [];
-    renderResults(data);
+    const rows = await getCSV();
+    progress(70);
+    const col = FUEL_COLS[fuel];
+    const radiusM = radius * 1609.34;
+
+    // Filter by distance and price presence
+    const near = [];
+    for (const row of rows) {
+      const sLat = parseFloat(row.latitude || row.lat || row.Latitude);
+      const sLng = parseFloat(row.longitude || row.lng || row.long || row.Longitude);
+      if (isNaN(sLat) || isNaN(sLng)) continue;
+      const priceRaw = row[col] || row[col.toLowerCase()] || row[fuel];
+      if (!priceRaw) continue;
+      const price = parseFloat(priceRaw);
+      if (isNaN(price) || price < 50 || price > 300) continue;
+      const dist = haversine(lat, lng, sLat, sLng);
+      if (dist > radiusM) continue;
+      near.push({ ...row, _dist: dist, _price: price, _lat: sLat, _lng: sLng });
+    }
+
+    progress(90);
+    renderResults(near, fuel, radius);
+    progress(100);
+    setTimeout(() => progress(0), 500);
   } catch(e) {
+    console.error(e);
+    progress(0);
     showError();
   }
 }
 
-function setSort(sort, btn) {
-  currentSort = sort;
-  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  search();
+function refresh() {
+  csvCache = null; csvCacheTime = 0;
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  doSearch().finally(() => btn.classList.remove('spinning'));
 }
 
-// ─── RENDER ───────────────────────────────────────────────────────
-function renderResults(data) {
-  const stations = data.stations || [];
-  const stats    = data.area_stats || {};
+// ── CSV FETCH ─────────────────────────────────────────────────────
+async function getCSV() {
+  const now = Date.now();
+  if (csvCache && now - csvCacheTime < 30 * 60 * 1000) return csvCache;
 
-  // area stats bar
-  if (stats.min !== undefined) {
-    document.getElementById('statMin').textContent   = `${stats.min}p`;
-    document.getElementById('statAvg').textContent   = `${stats.avg}p`;
-    document.getElementById('statMax').textContent   = `${stats.max}p`;
-    document.getElementById('statCount').textContent = stats.count;
-    document.getElementById('areaStats').style.display = '';
+  // Try direct first (CORS may work on some browsers/hosts), then proxy
+  let text;
+  const urls = [CSV_URL, CSV_CORS];
+  let lastErr;
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(r.status);
+      text = await r.text();
+      break;
+    } catch(e) { lastErr = e; }
+  }
+  if (!text) throw lastErr || new Error('CSV fetch failed');
+
+  csvCache = parseCSV(text);
+  csvCacheTime = Date.now();
+  document.getElementById('lastUpdated').innerHTML = `Updated<br>${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+  return csvCache;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (!lines.length) return [];
+  const headers = splitCSVLine(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = splitCSVLine(lines[i]);
+    if (vals.length < 3) continue;
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h.trim()] = (vals[idx] || '').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function splitCSVLine(line) {
+  const res = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (c === ',' && !inQ) { res.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  res.push(cur);
+  return res;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderResults(stations, fuel, radius) {
+  const sorted = [...stations].sort((a,b) =>
+    sortMode === 'price' ? a._price - b._price : a._dist - b._dist);
+
+  // Stats
+  const prices = sorted.map(s => s._price);
+  const mn = Math.min(...prices), mx = Math.max(...prices);
+  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
+
+  document.getElementById('sMin').textContent = mn.toFixed(1) + 'p';
+  document.getElementById('sAvg').textContent = avg.toFixed(1) + 'p';
+  document.getElementById('sMax').textContent = mx.toFixed(1) + 'p';
+  document.getElementById('sCnt').textContent = stations.length;
+
+  // Data freshness — check updated field
+  const ages = sorted.map(s => parseAge(s.last_updated || s.updated || s.price_updated || s.LastUpdated)).filter(a => a !== null);
+  const medAge = ages.length ? median(ages) : null;
+  if (medAge !== null) {
+    const h = Math.round(medAge / 3600000);
+    document.getElementById('sAge').textContent = h < 1 ? '<1h' : h < 24 ? h + 'h' : Math.round(h/24) + 'd';
+    const notice = document.getElementById('dataNotice');
+    const noticeText = document.getElementById('dataNoticeText');
+    notice.style.display = '';
+    if (h > 48) {
+      notice.className = 'data-notice stale';
+      noticeText.textContent = `⚠️ Some prices may be stale (${Math.round(h/24)}d old) — verify at the pump`;
+    } else {
+      notice.className = 'data-notice fresh';
+      noticeText.textContent = `✓ Prices from UK Gov Fuel Finder scheme · updated within ${h < 2 ? '1h' : h + 'h'}`;
+    }
   }
 
-  // sort bar
+  document.getElementById('statsBar').style.display = '';
   document.getElementById('sortBar').style.display = '';
-  document.getElementById('resultCount').textContent = `${stations.length} station${stations.length !== 1 ? 's' : ''}`;
+  document.getElementById('rCount').textContent = `${sorted.length} station${sorted.length !== 1 ? 's' : ''}`;
 
-  // updated time
-  const now = new Date();
-  document.getElementById('lastUpdated').innerHTML = `Updated<br>${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+  // Price rank map (cheapest = 1)
+  const byPrice = [...sorted].sort((a,b) => a._price - b._price);
+  const rankMap = new Map(byPrice.map((s,i) => [s, i+1]));
 
-  const el = document.getElementById('mainContent');
-  el.className = 'results';
+  const main = document.getElementById('main');
+  main.className = 'results';
 
-  if (!stations.length) {
-    el.innerHTML = `
-      <div class="state-screen">
-        <div class="state-icon">🔍</div>
-        <div class="state-title">No stations found</div>
-        <div class="state-body">Try increasing the search radius or check your location.</div>
-      </div>`;
+  if (!sorted.length) {
+    main.innerHTML = `<div class="state"><div class="state-icon">🔍</div>
+      <div class="state-title">No stations found</div>
+      <div class="state-body">No ${fuel} prices found within ${radius} miles. Try a larger radius.</div></div>`;
     return;
   }
 
-  // sort by price to determine rank (cheapest=1)
-  const sorted = [...stations].sort((a,b) => a.price - b.price);
-  const rankMap = {};
-  sorted.forEach((s, i) => rankMap[s.id] = i + 1);
-
-  el.innerHTML = stations.map(s => stationCard(s, stats, rankMap[s.id])).join('');
+  main.innerHTML = sorted.map(s => cardHtml(s, avg, rankMap.get(s))).join('');
 }
 
-function priceColor(diff) {
-  if (diff <= -5) return 'var(--cheap)';
-  if (diff <= 0)  return 'var(--accent2)';
-  if (diff <= 5)  return 'var(--mid)';
-  return 'var(--pricey)';
-}
+function cardHtml(s, avg, rank) {
+  const price = s._price;
+  const diff = +(price - avg).toFixed(1);
+  const sign = diff > 0 ? '+' : '';
+  const diffCls = diff < -1 ? 'lo' : diff > 1 ? 'hi' : 'eq';
+  const pc = diff < -3 ? 'var(--cheap)' : diff < 0 ? 'var(--acc2)' : diff < 3 ? 'var(--mid)' : 'var(--pricey)';
 
-function stationCard(s, stats, rank) {
-  const diff     = s.diff_from_avg ?? (s.price - (stats.avg || s.price));
-  const color    = priceColor(diff);
-  const diffSign = diff > 0 ? '+' : '';
-  const diffCls  = diff < 0 ? 'below' : diff > 0 ? 'above' : 'same';
+  const distMi = (s._dist / 1609.34).toFixed(1);
+  const brand = (s.brand || s.Brand || s.company || 'Station').toUpperCase();
+  const addr = titleCase((s.address || s.Address || s.street || '').split(',').slice(0,2).join(', '));
+  const pc2 = s.postcode || s.Postcode || s.post_code || '';
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s._lat},${s._lng}&travelmode=driving`;
 
-  const rankBadgeCls = rank === 1 ? '' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-n';
-  const rankLabel    = rank <= 3 ? `<div class="rank-badge ${rankBadgeCls}">${rank}</div>` : '';
+  const ageStr = parseAge(s.last_updated || s.updated || s.price_updated || s.LastUpdated);
+  const ageLabel = ageStr !== null ? fmtAge(ageStr) : '';
+  const isStale = ageStr !== null && ageStr > 48 * 3600000;
 
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving`;
+  const rankHtml = rank <= 3
+    ? `<div class="rank-badge rank-${rank}">${rank}</div>` : '';
 
-  const updated = s.price_updated ? formatUpdated(s.price_updated) : '';
+  const priceParts = price.toFixed(1).split('.');
+  const whole = priceParts[0];
+  const dec = priceParts[1];
 
-  const addr = s.address ? titleCase(s.address.split(',').slice(0,2).join(', ')) : 'Unknown';
-
-  return `
-  <div class="station-card" style="--price-color:${color}">
-    ${rankLabel}
+  return `<div class="card" style="--pc:${pc}">
+    ${rankHtml}
     <div class="card-top">
-      <div class="station-info">
-        <div class="brand-badge">
+      <div class="card-info">
+        <div class="brand-row">
           <div class="brand-dot"></div>
-          ${escHtml(s.brand || 'Unknown')}
+          <span class="brand-name">${esc(brand)}</span>
+          ${isStale ? '<span class="stale-flag">⚠ old</span>' : ''}
         </div>
-        <div class="station-address">${escHtml(addr)}</div>
-        <div class="station-postcode">${escHtml(s.postcode || '')}</div>
+        <div class="addr">${esc(addr)}</div>
+        <div class="postcode-tag">${esc(pc2)}</div>
       </div>
-      <div class="price-block">
-        <div class="price-pence">${s.price}<small style="font-size:14px;font-weight:500">p</small></div>
+      <div class="price-col">
+        <div class="price-big">${whole}<sup>.${dec}p</sup></div>
         <div class="price-unit">per litre</div>
-        ${diff !== 0 ? `<div class="price-diff ${diffCls}">${diffSign}${diff.toFixed(1)}p vs avg</div>` : ''}
+        ${diff !== 0 ? `<div class="price-diff ${diffCls}">${sign}${diff}p vs avg</div>` : ''}
       </div>
     </div>
-    <div class="card-bottom">
-      <div class="meta-pills">
-        <span class="pill"><span class="pill-icon">📏</span>${s.distance.toFixed(1)} mi</span>
-        ${updated ? `<span class="pill"><span class="pill-icon">🕐</span>${updated}</span>` : ''}
+    <div class="card-foot">
+      <div class="pills">
+        <span class="pill">📏 ${distMi} mi</span>
+        ${ageLabel ? `<span class="pill">🕐 ${ageLabel}</span>` : ''}
       </div>
-      <a class="maps-link" href="${mapsUrl}" target="_blank" rel="noopener">
-        🗺 Directions
-      </a>
+      <a class="dir-btn" href="${mapsUrl}" target="_blank" rel="noopener">🗺 Directions</a>
     </div>
   </div>`;
 }
 
-function formatUpdated(str) {
-  try {
-    const d = new Date(str.includes('/') ? str.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1') : str);
-    if (isNaN(d)) return '';
-    const now = new Date();
-    const h = Math.round((now - d) / 3600000);
-    if (h < 1)  return 'Just updated';
-    if (h < 24) return `${h}h ago`;
-    const days = Math.round(h / 24);
-    return `${days}d ago`;
-  } catch { return ''; }
+// ── SORT ──────────────────────────────────────────────────────────
+function setSort(mode, btn) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  doSearch();
 }
 
-function titleCase(str) {
-  return str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─── SKELETON ─────────────────────────────────────────────────────
+// ── SKELETON ──────────────────────────────────────────────────────
 function showSkeleton() {
-  document.getElementById('areaStats').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
   document.getElementById('sortBar').style.display = 'none';
-  const el = document.getElementById('mainContent');
-  el.className = 'results';
-  el.innerHTML = Array(5).fill(0).map(() => `
-    <div class="skeleton-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
-          <div class="skel skel-line skel-w40"></div>
-          <div class="skel skel-line skel-w70"></div>
-          <div class="skel skel-line skel-w40"></div>
+  document.getElementById('dataNotice').style.display = 'none';
+  const m = document.getElementById('main');
+  m.className = 'results';
+  m.innerHTML = Array(6).fill(0).map(() => `
+    <div class="skel-card">
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div class="sk" style="width:40%"></div>
+          <div class="sk" style="width:70%"></div>
+          <div class="sk" style="width:35%"></div>
         </div>
-        <div class="skel skel-price" style="margin-left:12px"></div>
+        <div class="sk" style="width:68px;height:32px;flex-shrink:0"></div>
       </div>
-      <div class="skel skel-line skel-w100" style="height:1px"></div>
-      <div style="display:flex;gap:8px">
-        <div class="skel skel-line skel-w40"></div>
-        <div class="skel skel-line skel-w40"></div>
+      <div class="sk" style="width:100%;height:1px;margin-top:4px"></div>
+      <div style="display:flex;gap:6px">
+        <div class="sk" style="width:60px"></div>
+        <div class="sk" style="width:60px"></div>
       </div>
     </div>`).join('');
 }
 
 function showError() {
-  document.getElementById('areaStats').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
   document.getElementById('sortBar').style.display = 'none';
-  const el = document.getElementById('mainContent');
-  el.className = 'state-screen';
-  el.innerHTML = `
-    <div class="state-icon">⚠️</div>
-    <div class="state-title">Couldn't load prices</div>
-    <div class="state-body">Check your connection and try again. Price data comes from the UK Government Fuel Finder scheme.</div>
-    <div class="state-actions"><button class="btn" onclick="search()">Retry</button></div>`;
+  const m = document.getElementById('main');
+  m.className = 'state';
+  m.innerHTML = `<div class="state-icon">⚠️</div>
+    <div class="state-title">Couldn't load price data</div>
+    <div class="state-body">The government fuel data couldn't be fetched. Check your connection and try again.</div>
+    <div class="state-actions"><button class="btn" onclick="refresh()">Retry</button></div>`;
 }
 
-// ─── TOAST ────────────────────────────────────────────────────────
-function showToast(msg, dur = 3000) {
+// ── HELPERS ───────────────────────────────────────────────────────
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function parseAge(val) {
+  if (!val) return null;
+  const d = new Date(val.includes('/') ? val.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1') : val);
+  if (isNaN(d)) return null;
+  return Date.now() - d.getTime();
+}
+
+function fmtAge(ms) {
+  const h = Math.round(ms / 3600000);
+  if (h < 1) return 'Just now';
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h/24)}d ago`;
+}
+
+function median(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+function titleCase(s) {
+  return s.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function progress(pct) {
+  document.getElementById('loadBar').style.width = pct + '%';
+}
+
+function showToast(msg, ms = 3000) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
 }
 
-// ─── INSTALL ──────────────────────────────────────────────────────
+function ls(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function ss(k,v) { try { localStorage.setItem(k, String(v)); } catch {} }
+
+// ── INSTALL ───────────────────────────────────────────────────────
 function handleInstall() {
   window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!localStorage.getItem('fuelnear_installed')) {
-      document.getElementById('installBanner').classList.add('visible');
-    }
+    e.preventDefault(); deferredPrompt = e;
+    if (!ls('fn_inst')) document.getElementById('installBar').classList.add('show');
   });
-
   document.getElementById('installBtn').addEventListener('click', async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      localStorage.setItem('fuelnear_installed', '1');
-      document.getElementById('installBanner').classList.remove('visible');
-    }
+    if (outcome === 'accepted') { ss('fn_inst','1'); document.getElementById('installBar').classList.remove('show'); }
     deferredPrompt = null;
   });
-
   document.getElementById('dismissInstall').addEventListener('click', () => {
-    document.getElementById('installBanner').classList.remove('visible');
-    localStorage.setItem('fuelnear_installed', '1');
+    document.getElementById('installBar').classList.remove('show'); ss('fn_inst','1');
   });
 }
-
-function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
 </script>
 </body>
 </html>
