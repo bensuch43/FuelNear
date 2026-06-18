@@ -1,17 +1,9 @@
-// FuelNear Service Worker v2
-// Use the GitHub Pages base path if deployed there
-const CACHE = 'fuelnear-v2';
-
-// Determine base path dynamically
-const BASE = self.location.pathname.replace(/\/sw\.js$/, '') || '';
+// FuelNear SW v3 — GitHub Pages safe
+const CACHE = 'fuelnear-v3';
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll([BASE + '/', BASE + '/index.html']))
-      .catch(() => {}) // Don't fail install if caching fails
-      .then(() => self.skipWaiting())
-  );
+  // Don't pre-cache — just activate immediately
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
@@ -24,27 +16,26 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  const isSameOrigin = url.origin === self.location.origin;
 
-  // Always network-first for external APIs and data
-  const isExternal = url.hostname !== self.location.hostname;
-  if (isExternal) {
-    e.respondWith(
-      fetch(e.request, { cache: 'no-store' })
-        .catch(() => new Response('{"success":false,"error":"offline"}', {
-          headers: { 'Content-Type': 'application/json' }
-        }))
-    );
+  // External requests (APIs, feeds) — network only, no caching
+  if (!isSameOrigin) {
+    e.respondWith(fetch(e.request).catch(() =>
+      new Response('{"error":"offline"}', { headers: { 'Content-Type': 'application/json' } })
+    ));
     return;
   }
 
-  // Cache-first for app shell (same origin)
+  // Same-origin app shell — stale-while-revalidate
   e.respondWith(
-    caches.match(e.request)
-      .then(cached => cached || fetch(e.request).then(res => {
-        if (res.ok && e.request.method === 'GET') {
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        }
-        return res;
-      }))
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(res => {
+          if (res.ok) cache.put(e.request, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
+    )
   );
 });

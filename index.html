@@ -1,281 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1923" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="FuelNear" />
-  <meta name="description" content="Find the cheapest fuel near you across 8,000+ UK stations" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="icon" href="icons/icon-192.png" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f1923"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="FuelNear"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <title>FuelNear</title>
   <style>
-    :root {
-      --bg:      #0f1923;
-      --surf:    #162030;
-      --card:    #1d2d3e;
-      --bdr:     #243548;
-      --acc:     #e8ff3b;
-      --acc2:    #3bffb0;
-      --text:    #e8edf2;
-      --muted:   #7a8fa6;
-      --cheap:   #3bffb0;
-      --mid:     #ffcc3b;
-      --pricey:  #ff8c3b;
-      --danger:  #ff5f5f;
-      --mono:    'DM Mono','Fira Mono',monospace;
-      --body:    'Inter',system-ui,sans-serif;
-      --r:       12px;
-      --safe-t:  env(safe-area-inset-top,0px);
-      --safe-b:  env(safe-area-inset-bottom,0px);
+    :root{
+      --bg:#0f1923;--surf:#162030;--card:#1d2d3e;--bdr:#243548;
+      --acc:#e8ff3b;--acc2:#3bffb0;--text:#e8edf2;--muted:#7a8fa6;
+      --cheap:#3bffb0;--mid:#ffcc3b;--pricey:#ff8c3b;--danger:#ff5f5f;
+      --mono:'DM Mono','Courier New',monospace;--body:system-ui,sans-serif;
+      --r:12px;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: var(--bg); color: var(--text);
-      font-family: var(--body); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--text);
+      font-family:var(--body);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 
-    .app { display: flex; flex-direction: column; height: 100dvh;
-      max-width: 480px; margin: 0 auto;
-      padding-top: var(--safe-t); padding-bottom: var(--safe-b); }
+    /* APP SHELL */
+    .app{display:flex;flex-direction:column;height:100dvh;
+      max-width:480px;margin:0 auto;
+      padding-top:var(--st);padding-bottom:var(--sb)}
 
     /* HEADER */
-    header { padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid var(--bdr); background: var(--bg); position: sticky;
-      top: var(--safe-t); z-index: 10; }
-    .logo { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .logo-icon { width: 30px; height: 30px; background: var(--acc); border-radius: 7px;
-      display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-    .logo-text span { color: var(--acc); }
-    .hdr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-    .last-updated { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.3; }
-    .refresh-btn { background: none; border: none; color: var(--muted); font-size: 15px;
-      cursor: pointer; padding: 2px 4px; transition: color 0.15s; }
-    .refresh-btn:hover { color: var(--acc); }
-    .refresh-btn.spinning { animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    header{padding:12px 16px 10px;display:flex;align-items:center;gap:10px;
+      border-bottom:1px solid var(--bdr);background:var(--bg);
+      position:sticky;top:var(--st);z-index:10}
+    .logo{display:flex;align-items:center;gap:8px;flex:1}
+    .logo-icon{width:30px;height:30px;background:var(--acc);border-radius:7px;
+      display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .logo-text{font-size:18px;font-weight:700;letter-spacing:-.5px}
+    .logo-text b{color:var(--acc)}
+    .upd{font-size:10px;color:var(--muted);text-align:right;line-height:1.3}
+    .rbtn{background:none;border:none;color:var(--muted);font-size:16px;
+      cursor:pointer;padding:2px 4px;transition:color .15s;line-height:1}
+    .rbtn:hover{color:var(--acc)}
+    .rbtn.spin{animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
     /* CONTROLS */
-    .controls { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;
-      border-bottom: 1px solid var(--bdr); background: var(--surf); }
+    .ctrl{padding:12px 16px;display:flex;flex-direction:column;gap:8px;
+      border-bottom:1px solid var(--bdr);background:var(--surf)}
+    .loc-row{display:flex;gap:8px;align-items:stretch}
+    .loc-btn{flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:10px 12px;font-size:13px;color:var(--text);display:flex;align-items:center;
+      gap:8px;cursor:pointer;transition:border-color .15s;text-align:left;
+      font-family:var(--body);min-width:0}
+    .loc-btn:hover{border-color:var(--acc)}
+    .loc-icon{font-size:14px;flex-shrink:0}
+    .loc-inner{flex:1;min-width:0}
+    .loc-lbl{font-size:10px;color:var(--muted);display:block;margin-bottom:1px}
+    .loc-val{font-size:13px;font-weight:500;display:block;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pc-row{display:none;gap:8px}
+    .pc-row.open{display:flex}
+    input{flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:10px 12px;font-size:14px;color:var(--text);outline:none;
+      font-family:var(--body);transition:border-color .15s}
+    input::placeholder{color:var(--muted)}
+    input:focus{border-color:var(--acc)}
+    .frow{display:flex;gap:8px}
+    select{flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:10px 12px;font-size:13px;color:var(--text);outline:none;
+      font-family:var(--body);cursor:pointer;appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a8fa6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 11px center;
+      padding-right:30px;transition:border-color .15s}
+    select:focus{border-color:var(--acc)}
+    .btn{background:var(--acc);color:#0f1923;border:none;border-radius:var(--r);
+      padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;
+      font-family:var(--body);white-space:nowrap;transition:opacity .15s,transform .1s;flex-shrink:0}
+    .btn:active{transform:scale(.97);opacity:.85}
+    .btn-g{background:var(--card);color:var(--text);border:1px solid var(--bdr)}
+    .btn-i{padding:10px 11px;font-size:15px;line-height:1;flex-shrink:0}
 
-    .location-row { display: flex; align-items: stretch; gap: 8px; }
-    .location-btn { flex: 1; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--text);
-      display: flex; align-items: center; gap: 8px; cursor: pointer;
-      transition: border-color 0.15s; text-align: left; font-family: var(--body); min-width: 0; }
-    .location-btn:hover { border-color: var(--acc); }
-    .location-btn .loc-icon { font-size: 15px; flex-shrink: 0; }
-    .location-btn .loc-inner { flex: 1; min-width: 0; }
-    .location-btn .loc-label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 1px; }
-    .location-btn .loc-val { font-size: 13px; font-weight: 500;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    /* PROGRESS */
+    .pbar{height:2px;background:transparent}
+    .pbar-inner{height:100%;background:var(--acc);width:0;transition:width .3s ease}
 
-    .postcode-row { display: none; gap: 8px; }
-    .postcode-row.open { display: flex; }
+    /* STATS */
+    .stats{display:flex;gap:7px;padding:8px 14px;background:var(--bg);
+      border-bottom:1px solid var(--bdr);overflow-x:auto;scrollbar-width:none}
+    .stats::-webkit-scrollbar{display:none}
+    .sp{display:flex;flex-direction:column;align-items:center;padding:5px 11px;
+      background:var(--card);border-radius:8px;border:1px solid var(--bdr);flex-shrink:0}
+    .sp-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
+    .sp-v{font-size:13px;font-weight:700;font-family:var(--mono)}
+    .sp-v.c{color:var(--cheap)}.sp-v.m{color:var(--mid)}.sp-v.p{color:var(--pricey)}
 
-    input[type="text"] { flex: 1; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: var(--r); padding: 10px 12px; font-size: 14px; color: var(--text);
-      outline: none; font-family: var(--body); transition: border-color 0.15s; }
-    input::placeholder { color: var(--muted); }
-    input:focus { border-color: var(--acc); }
+    /* NOTICE */
+    .notice{padding:6px 14px;font-size:11px;display:flex;align-items:center;gap:6px;
+      background:var(--surf);border-bottom:1px solid var(--bdr);color:var(--muted)}
+    .notice.ok{color:var(--cheap)}
+    .notice.warn{color:var(--danger);background:rgba(255,95,95,.06)}
 
-    .filter-row { display: flex; gap: 8px; }
+    /* SORT */
+    .sbar{display:flex;align-items:center;justify-content:space-between;
+      padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--bdr)}
+    .stabs{display:flex;gap:3px;background:var(--surf);border-radius:8px;padding:3px}
+    .stab{padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;
+      cursor:pointer;color:var(--muted);border:none;background:none;
+      font-family:var(--body);transition:all .15s}
+    .stab.on{background:var(--card);color:var(--text)}
+    .rcnt{font-size:11px;color:var(--muted)}
 
-    select { flex: 1; background: var(--card); border: 1px solid var(--bdr);
-      border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--text);
-      outline: none; font-family: var(--body); cursor: pointer; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8fa6' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
-      transition: border-color 0.15s; }
-    select:focus { border-color: var(--acc); }
+    /* LIST */
+    .list{flex:1;overflow-y:auto;padding:10px 12px;
+      display:flex;flex-direction:column;gap:7px;-webkit-overflow-scrolling:touch}
+    .list::-webkit-scrollbar{width:3px}
+    .list::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
 
-    .btn { background: var(--acc); color: #0f1923; border: none; border-radius: var(--r);
-      padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
-      font-family: var(--body); white-space: nowrap; transition: opacity 0.15s, transform 0.1s;
-      flex-shrink: 0; }
-    .btn:active { transform: scale(0.97); opacity: 0.85; }
-    .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--bdr); }
-    .btn-icon { padding: 10px 11px; font-size: 15px; line-height: 1; flex-shrink: 0; }
+    /* CARD */
+    .card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:12px;display:flex;flex-direction:column;gap:8px;
+      position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;left:0;top:0;bottom:0;
+      width:3px;background:var(--pc,var(--bdr))}
+    .ct{display:flex;gap:10px;align-items:flex-start}
+    .ci{flex:1;min-width:0}
+    .brow{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+    .bdot{width:7px;height:7px;border-radius:50%;background:var(--pc,var(--muted));flex-shrink:0}
+    .bname{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+    .adr{font-size:12px;color:var(--muted);line-height:1.35;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pctag{font-size:11px;color:var(--acc2);font-family:var(--mono);margin-top:2px}
+    .pcol{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;padding-left:6px}
+    .pbig{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1;
+      color:var(--pc,var(--text));letter-spacing:-1px;white-space:nowrap}
+    .pbig sup{font-size:13px;font-weight:600;vertical-align:super;letter-spacing:0}
+    .punit{font-size:10px;color:var(--muted);text-align:right;margin-top:1px}
+    .pdiff{font-size:10px;font-family:var(--mono);font-weight:700;margin-top:2px}
+    .pdiff.lo{color:var(--cheap)}.pdiff.hi{color:var(--pricey)}.pdiff.eq{color:var(--muted)}
+    .cf{display:flex;align-items:center;justify-content:space-between;
+      padding-top:7px;border-top:1px solid var(--bdr);gap:8px}
+    .pills{display:flex;gap:5px;min-width:0;overflow:hidden}
+    .pill{display:inline-flex;align-items:center;gap:3px;font-size:11px;
+      color:var(--muted);background:var(--surf);border-radius:20px;
+      padding:3px 7px;white-space:nowrap;flex-shrink:0}
+    .dirbtn{display:inline-flex;align-items:center;gap:4px;font-size:11px;
+      font-weight:700;color:var(--acc);text-decoration:none;padding:5px 10px;
+      background:rgba(232,255,59,.1);border-radius:20px;
+      border:1px solid rgba(232,255,59,.2);transition:background .15s;flex-shrink:0}
+    .dirbtn:hover{background:rgba(232,255,59,.2)}
+    .rbadge{position:absolute;top:9px;right:9px;width:18px;height:18px;
+      border-radius:50%;font-size:9px;font-weight:800;display:flex;
+      align-items:center;justify-content:center;font-family:var(--mono)}
+    .r1{background:var(--acc);color:#0f1923}
+    .r2{background:#b8c4b0;color:#0f1923}
+    .r3{background:#a07850;color:#fff}
 
-    /* DATA SOURCE NOTICE */
-    .data-notice { display: flex; align-items: center; gap: 8px; padding: 7px 16px;
-      background: var(--surf); border-bottom: 1px solid var(--bdr); font-size: 11px;
-      color: var(--muted); }
-    .data-notice.stale { background: rgba(255,95,95,0.06); color: var(--danger); }
-    .data-notice.fresh { color: var(--cheap); }
-
-    /* STATS BAR */
-    .area-stats { display: flex; gap: 8px; padding: 8px 16px;
-      background: var(--bg); border-bottom: 1px solid var(--bdr);
-      overflow-x: auto; scrollbar-width: none; }
-    .area-stats::-webkit-scrollbar { display: none; }
-    .stat-pill { display: flex; flex-direction: column; align-items: center;
-      padding: 5px 12px; background: var(--card); border-radius: 8px;
-      border: 1px solid var(--bdr); flex-shrink: 0; }
-    .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.5px; margin-bottom: 2px; }
-    .stat-val { font-size: 14px; font-weight: 700; font-family: var(--mono); }
-    .stat-val.cheap  { color: var(--cheap); }
-    .stat-val.mid    { color: var(--mid); }
-    .stat-val.pricey { color: var(--pricey); }
-
-    /* SORT BAR */
-    .sort-bar { display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--bdr); }
-    .sort-tabs { display: flex; gap: 3px; background: var(--surf);
-      border-radius: 8px; padding: 3px; }
-    .sort-tab { padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px;
-      cursor: pointer; color: var(--muted); transition: all 0.15s; border: none;
-      background: none; font-family: var(--body); }
-    .sort-tab.active { background: var(--card); color: var(--text); }
-    .result-count { font-size: 11px; color: var(--muted); }
-
-    /* RESULTS LIST */
-    .results { flex: 1; overflow-y: auto; padding: 10px 12px;
-      display: flex; flex-direction: column; gap: 7px; -webkit-overflow-scrolling: touch; }
-    .results::-webkit-scrollbar { width: 3px; }
-    .results::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
-
-    /* STATION CARD */
-    .card { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--r);
-      padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 8px;
-      position: relative; overflow: hidden; }
-    .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-      background: var(--pc, var(--bdr)); }
-    .card-top { display: flex; align-items: flex-start; gap: 10px; }
-    .card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-
-    .brand-row { display: flex; align-items: center; gap: 6px; }
-    .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pc, var(--muted)); flex-shrink: 0; }
-    .brand-name { font-size: 12px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.4px; color: var(--text); }
-    .stale-flag { font-size: 10px; color: var(--danger); margin-left: 4px; }
-
-    .addr { font-size: 12px; color: var(--muted); line-height: 1.3;
-      overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .postcode-tag { font-size: 11px; color: var(--acc2); font-family: var(--mono); }
-
-    .price-col { display: flex; flex-direction: column; align-items: flex-end;
-      flex-shrink: 0; padding-left: 4px; }
-    .price-big { font-size: 26px; font-weight: 800; font-family: var(--mono);
-      line-height: 1; color: var(--pc, var(--text)); letter-spacing: -1px; white-space: nowrap; }
-    .price-big sup { font-size: 14px; font-weight: 600; vertical-align: top;
-      margin-top: 2px; margin-right: 1px; }
-    .price-unit { font-size: 10px; color: var(--muted); text-align: right; margin-top: 1px; }
-    .price-diff { font-size: 10px; font-family: var(--mono); font-weight: 700; margin-top: 3px; }
-    .price-diff.lo { color: var(--cheap); }
-    .price-diff.hi { color: var(--pricey); }
-    .price-diff.eq { color: var(--muted); }
-
-    .card-foot { display: flex; align-items: center; justify-content: space-between;
-      padding-top: 7px; border-top: 1px solid var(--bdr); gap: 8px; }
-    .pills { display: flex; gap: 5px; flex-wrap: nowrap; min-width: 0; overflow: hidden; }
-    .pill { display: inline-flex; align-items: center; gap: 3px; font-size: 11px;
-      color: var(--muted); background: var(--surf); border-radius: 20px; padding: 3px 7px;
-      white-space: nowrap; flex-shrink: 0; }
-    .dir-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
-      font-weight: 700; color: var(--acc); text-decoration: none; padding: 5px 10px;
-      background: rgba(232,255,59,0.1); border-radius: 20px;
-      border: 1px solid rgba(232,255,59,0.2); transition: background 0.15s; flex-shrink: 0; }
-    .dir-btn:hover { background: rgba(232,255,59,0.2); }
-
-    .rank-badge { position: absolute; top: 9px; right: 9px; width: 18px; height: 18px;
-      border-radius: 50%; font-size: 9px; font-weight: 800; display: flex;
-      align-items: center; justify-content: center; font-family: var(--mono); }
-    .rank-1 { background: var(--acc); color: #0f1923; }
-    .rank-2 { background: #c0c8b8; color: #0f1923; }
-    .rank-3 { background: #b08060; color: #fff; }
-
-    /* STATE SCREENS */
-    .state { flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 12px; padding: 32px 20px; text-align: center; }
-    .state-icon { font-size: 44px; }
-    .state-title { font-size: 17px; font-weight: 700; }
-    .state-body { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 280px; }
-    .state-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+    /* STATE */
+    .state{flex:1;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:12px;padding:32px 20px;text-align:center}
+    .si{font-size:44px}.st{font-size:17px;font-weight:700}
+    .sb{font-size:13px;color:var(--muted);line-height:1.5;max-width:280px}
+    .sa{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
 
     /* SKELETON */
-    .skel-card { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--r); padding: 12px; }
-    .sk { border-radius: 4px; background: linear-gradient(90deg,var(--surf) 25%,var(--bdr) 50%,var(--surf) 75%);
-      background-size: 600px 100%; animation: sh 1.3s infinite linear; height: 11px; margin-bottom: 6px; }
-    @keyframes sh { 0% { background-position:-300px 0 } 100% { background-position:300px 0 } }
-
-    /* LOADING BAR */
-    .load-bar { height: 2px; background: var(--surf); overflow: hidden; }
-    .load-bar-inner { height: 100%; background: var(--acc); width: 0; transition: width 0.3s; }
-
-    /* TOAST */
-    .toast { position: fixed; bottom: calc(20px + var(--safe-b)); left: 50%;
-      transform: translateX(-50%) translateY(60px); background: var(--card);
-      border: 1px solid var(--bdr); color: var(--text); padding: 9px 16px;
-      border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 100;
-      opacity: 0; transition: transform 0.25s, opacity 0.25s; white-space: nowrap;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5); pointer-events: none; }
-    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .sk-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:12px}
+    .sk{border-radius:4px;height:11px;margin-bottom:6px;
+      background:linear-gradient(90deg,var(--surf) 25%,var(--bdr) 50%,var(--surf) 75%);
+      background-size:600px 100%;animation:sh 1.2s infinite linear}
+    @keyframes sh{0%{background-position:-300px 0}100%{background-position:300px 0}}
 
     /* INSTALL */
-    .install-bar { display: none; align-items: center; gap: 8px; padding: 9px 16px;
-      background: rgba(232,255,59,0.07); border-bottom: 1px solid rgba(232,255,59,0.2);
-      font-size: 12px; }
-    .install-bar.show { display: flex; }
-    .ib-text { flex: 1; color: var(--text); }
-    .ib-close { background: none; border: none; color: var(--muted); font-size: 16px;
-      cursor: pointer; padding: 2px 5px; }
+    .inst{display:none;align-items:center;gap:8px;padding:9px 16px;
+      background:rgba(232,255,59,.07);border-bottom:1px solid rgba(232,255,59,.2);font-size:12px}
+    .inst.show{display:flex}
+    .inst-t{flex:1;color:var(--text)}
+    .inst-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 5px}
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    /* TOAST */
+    .toast{position:fixed;bottom:calc(20px + var(--sb));left:50%;
+      transform:translateX(-50%) translateY(60px);background:var(--card);
+      border:1px solid var(--bdr);color:var(--text);padding:9px 16px;
+      border-radius:20px;font-size:13px;z-index:100;opacity:0;
+      transition:transform .25s,opacity .25s;white-space:nowrap;
+      box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:none}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
     }
   </style>
 </head>
 <body>
 <div class="app">
-
   <header>
     <div class="logo">
       <div class="logo-icon">⛽</div>
-      <div class="logo-text">Fuel<span>Near</span></div>
+      <div class="logo-text">Fuel<b>Near</b></div>
     </div>
-    <div class="hdr-right">
-      <div class="last-updated" id="lastUpdated">—</div>
-      <button class="refresh-btn" id="refreshBtn" onclick="refresh()" title="Refresh prices">↻</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+      <div class="upd" id="upd">—</div>
+      <button class="rbtn" id="rbtn" onclick="refresh()" title="Refresh">↻</button>
     </div>
   </header>
 
-  <div class="install-bar" id="installBar">
+  <div class="inst" id="instBar">
     <span>📲</span>
-    <span class="ib-text"><strong>Add to home screen</strong> for quick access</span>
-    <button class="ib-close" id="installBtn">Install</button>
-    <button class="ib-close" id="dismissInstall">✕</button>
+    <span class="inst-t"><strong>Add to home screen</strong> for quick access</span>
+    <button class="inst-x" id="instBtn">Install</button>
+    <button class="inst-x" id="instDis">✕</button>
   </div>
 
-  <div class="controls">
-    <div class="location-row">
-      <button class="location-btn" id="locBtn" onclick="requestGPS()">
+  <div class="ctrl">
+    <div class="loc-row">
+      <button class="loc-btn" onclick="doGPS()">
         <span class="loc-icon">📍</span>
         <span class="loc-inner">
-          <span class="loc-label">Location</span>
+          <span class="loc-lbl">Location</span>
           <span class="loc-val" id="locVal">Tap to use GPS</span>
         </span>
       </button>
-      <button class="btn btn-ghost btn-icon" title="Enter postcode" onclick="togglePostcode()">🔤</button>
+      <button class="btn btn-g btn-i" onclick="togglePC()">🔤</button>
     </div>
-
-    <div class="postcode-row" id="pcRow">
-      <input type="text" id="pcInput" placeholder="e.g. PO7 7PW" maxlength="10" autocomplete="postal-code" />
-      <button class="btn" onclick="usePostcode()">Go</button>
+    <div class="pc-row" id="pcRow">
+      <input id="pcIn" type="text" placeholder="e.g. PO7 7PW" maxlength="10" autocomplete="postal-code"/>
+      <button class="btn" onclick="doPostcode()">Go</button>
     </div>
-
-    <div class="filter-row">
-      <select id="fuelSel" onchange="doSearch()">
+    <div class="frow">
+      <select id="fuelSel" onchange="search()">
         <option value="E10">⛽ E10 Petrol</option>
         <option value="E5">⛽ E5 Super Unleaded</option>
         <option value="B7" selected>🚗 B7 Diesel</option>
         <option value="SDV">🚗 Super Diesel</option>
       </select>
-      <select id="radSel" onchange="doSearch()">
+      <select id="radSel" onchange="search()">
         <option value="3">3 mi</option>
         <option value="5" selected>5 mi</option>
         <option value="10">10 mi</option>
@@ -284,440 +240,406 @@
     </div>
   </div>
 
-  <div class="load-bar"><div class="load-bar-inner" id="loadBar"></div></div>
-
-  <div class="area-stats" id="statsBar" style="display:none">
-    <div class="stat-pill"><span class="stat-label">Cheapest</span><span class="stat-val cheap" id="sMin">—</span></div>
-    <div class="stat-pill"><span class="stat-label">Area avg</span><span class="stat-val mid"   id="sAvg">—</span></div>
-    <div class="stat-pill"><span class="stat-label">Priciest</span><span class="stat-val pricey" id="sMax">—</span></div>
-    <div class="stat-pill"><span class="stat-label">Stations</span><span class="stat-val"        id="sCnt">—</span></div>
-    <div class="stat-pill"><span class="stat-label">Data age</span><span class="stat-val"        id="sAge">—</span></div>
+  <div class="pbar"><div class="pbar-inner" id="pbar"></div></div>
+  <div class="stats" id="stats" style="display:none">
+    <div class="sp"><span class="sp-l">Cheapest</span><span class="sp-v c" id="sMin">—</span></div>
+    <div class="sp"><span class="sp-l">Area avg</span><span class="sp-v m" id="sAvg">—</span></div>
+    <div class="sp"><span class="sp-l">Priciest</span><span class="sp-v p" id="sMax">—</span></div>
+    <div class="sp"><span class="sp-l">Stations</span><span class="sp-v" id="sCnt">—</span></div>
+    <div class="sp"><span class="sp-l">Sources</span><span class="sp-v" id="sSrc">—</span></div>
   </div>
-
-  <div class="data-notice" id="dataNotice" style="display:none">
-    <span id="dataNoticeText"></span>
-  </div>
-
-  <div class="sort-bar" id="sortBar" style="display:none">
-    <div class="sort-tabs">
-      <button class="sort-tab active" onclick="setSort('price',this)">Cheapest</button>
-      <button class="sort-tab"        onclick="setSort('dist',this)">Nearest</button>
+  <div class="notice" id="notice" style="display:none"><span id="noticeText"></span></div>
+  <div class="sbar" id="sbar" style="display:none">
+    <div class="stabs">
+      <button class="stab on" onclick="setSort('price',this)">Cheapest</button>
+      <button class="stab"    onclick="setSort('dist',this)">Nearest</button>
     </div>
-    <span class="result-count" id="rCount"></span>
+    <span class="rcnt" id="rcnt"></span>
   </div>
 
   <div id="main" class="state">
-    <div class="state-icon">⛽</div>
-    <div class="state-title">Find cheap fuel near you</div>
-    <div class="state-body">Live prices from 8,000+ UK stations via the government Fuel Finder scheme.</div>
-    <div class="state-actions">
-      <button class="btn" onclick="requestGPS()">Use my location</button>
-      <button class="btn btn-ghost" onclick="togglePostcode()">Enter postcode</button>
+    <div class="si">⛽</div>
+    <div class="st">Find cheap fuel near you</div>
+    <div class="sb">Live prices from UK retailers via the government open data scheme. No sign-in needed.</div>
+    <div class="sa">
+      <button class="btn" onclick="doGPS()">Use my location</button>
+      <button class="btn btn-g" onclick="togglePC()">Enter postcode</button>
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────
-// The gov CSV is large (~2MB). We cache it for 30 min in memory.
-// Two sources: primary = gov CSV direct; fallback = CMA open data.
-const CSV_URL = 'https://www.fuel-finder.service.gov.uk/data/fuel-prices-data.csv';
-const CSV_CORS = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
+// ── RETAILER FEEDS ────────────────────────────────────────────────
+// CMA open data feeds — each retailer publishes JSON at a stable URL
+// Format: { stations: [{ location:{latitude,longitude}, prices:{E10,B7,...}, brand, address, postcode }] }
+// We fetch all in parallel, merge, then filter by distance client-side.
+const PROXY = 'https://corsproxy.io/?';
 
-// Fuel type column names in the CSV
-const FUEL_COLS = { E10: 'E10', E5: 'E5', B7: 'B7', SDV: 'SDV' };
+const FEEDS = [
+  { name:'Asda',       url:'https://storelocator.asda.com/fuel_prices_data.json' },
+  { name:'Tesco',      url:'https://www.tesco.com/fuel_prices/fuel_prices_data.json' },
+  { name:'Sainsburys', url:'https://api.sainsburys.co.uk/v1/exports/latest/fuel_prices_data.json' },
+  { name:'Morrisons',  url:'https://www.morrisons.com/fuel-prices/fuel.json' },
+  { name:'BP',         url:'https://www.bp.com/en_gb/united-kingdom/home/fuelprices/fuel_prices_data.json' },
+  { name:'Esso',       url:'https://fuelprices.esso.co.uk/latestdata.json' },
+  { name:'Shell',      url:'https://www.shell.co.uk/fuel-prices-data.html' },
+  { name:'Jet',        url:'https://jetlocal.co.uk/fuel_prices_data.json' },
+  { name:'Moto',       url:'https://moto-way.com/fuel-price/fuel_prices.json' },
+  { name:'MFG',        url:'https://fuel.motorfuelgroup.com/fuel_prices_data.json' },
+  { name:'Rontec',     url:'https://www.rontec-servicestations.co.uk/fuel-prices/data/fuel_prices_data.json' },
+  { name:'SGN',        url:'https://www.sgnretail.uk/files/data/SGN_daily_fuel_prices.json' },
+  { name:'Ascona',     url:'https://fuelprices.asconagroup.co.uk/newfuel.json' },
+  { name:'Applegreen', url:'https://applegreenstores.com/fuel-prices/data.json' },
+];
 
-// ── STATE ────────────────────────────────────────────────────────
-let lat = null, lng = null;
+// ── STATE ─────────────────────────────────────────────────────────
+let userLat = null, userLng = null;
 let sortMode = 'price';
-let csvCache = null, csvCacheTime = 0;
+let stationCache = null, cacheTime = 0;
 let deferredPrompt = null;
+const CACHE_TTL = 25 * 60 * 1000; // 25 min
 
-// ── INIT ─────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  restorePrefs();
-  handleInstall();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  loadPrefs();
+  setupInstall();
 });
 
-function restorePrefs() {
-  const f = ls('fn_fuel'), r = ls('fn_rad'), la = ls('fn_lat'), lo = ls('fn_lng'), lb = ls('fn_label');
+function loadPrefs() {
+  const f=g('fn_fuel'), r=g('fn_rad'), la=g('fn_lat'), lo=g('fn_lng'), lb=g('fn_label');
   if (f) document.getElementById('fuelSel').value = f;
   if (r) document.getElementById('radSel').value = r;
   if (la && lo) {
-    lat = +la; lng = +lo;
+    userLat = +la; userLng = +lo;
     document.getElementById('locVal').textContent = lb || 'Saved location';
-    doSearch();
+    search();
   }
 }
 
-// ── LOCATION ─────────────────────────────────────────────────────
-function requestGPS() {
-  if (!navigator.geolocation) { showToast('GPS not supported — use postcode'); togglePostcode(); return; }
-  setLocVal('Locating…');
-  navigator.geolocation.getCurrentPosition(pos => {
-    lat = pos.coords.latitude; lng = pos.coords.longitude;
-    const label = `GPS · ${lat.toFixed(3)}, ${lng.toFixed(3)}`;
-    setLocVal(label);
-    ss('fn_lat', lat); ss('fn_lng', lng); ss('fn_label', label);
-    doSearch();
-  }, err => {
-    setLocVal('Tap to use GPS');
-    showToast(err.code === 1 ? 'Location denied — enter a postcode' : 'Location failed — try postcode');
-    document.getElementById('pcRow').classList.add('open');
-    document.getElementById('pcInput').focus();
-  }, { timeout: 10000, maximumAge: 60000 });
+// ── LOCATION ──────────────────────────────────────────────────────
+function doGPS() {
+  if (!navigator.geolocation) { toast('GPS not available — use postcode'); togglePC(); return; }
+  setLoc('Locating…');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+      const lbl = `GPS · ${userLat.toFixed(3)}, ${userLng.toFixed(3)}`;
+      setLoc(lbl); s('fn_lat',userLat); s('fn_lng',userLng); s('fn_label',lbl);
+      search();
+    },
+    err => {
+      setLoc('Tap to use GPS');
+      toast(err.code===1 ? 'Location denied — try postcode' : 'Could not get location');
+      document.getElementById('pcRow').classList.add('open');
+      document.getElementById('pcIn').focus();
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
 }
 
-function togglePostcode() {
-  const row = document.getElementById('pcRow');
-  row.classList.toggle('open');
-  if (row.classList.contains('open')) document.getElementById('pcInput').focus();
+function togglePC() {
+  const r = document.getElementById('pcRow');
+  r.classList.toggle('open');
+  if (r.classList.contains('open')) document.getElementById('pcIn').focus();
 }
 
-async function usePostcode() {
-  const raw = document.getElementById('pcInput').value.trim().toUpperCase().replace(/\s/g,'');
-  if (!raw) { showToast('Enter a postcode first'); return; }
-  setLocVal('Looking up…');
+async function doPostcode() {
+  const raw = document.getElementById('pcIn').value.trim().toUpperCase().replace(/\s/g,'');
+  if (!raw) { toast('Enter a postcode first'); return; }
+  setLoc('Looking up…');
   try {
     const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(raw)}`);
     const d = await res.json();
-    if (d.status !== 200) throw new Error();
-    lat = d.result.latitude; lng = d.result.longitude;
-    const label = fmtPC(raw);
-    setLocVal(label);
-    ss('fn_lat', lat); ss('fn_lng', lng); ss('fn_label', label);
+    if (d.status !== 200) throw new Error('not found');
+    userLat = d.result.latitude; userLng = d.result.longitude;
+    const lbl = fmtPC(raw);
+    setLoc(lbl); s('fn_lat',userLat); s('fn_lng',userLng); s('fn_label',lbl);
     document.getElementById('pcRow').classList.remove('open');
-    doSearch();
+    search();
   } catch {
-    setLocVal('Tap to use GPS');
-    showToast('Postcode not found');
+    setLoc('Tap to use GPS');
+    toast('Postcode not found — check and retry');
   }
 }
 
-document.getElementById('pcInput').addEventListener('keydown', e => { if (e.key === 'Enter') usePostcode(); });
-function setLocVal(t) { document.getElementById('locVal').textContent = t; }
-function fmtPC(raw) { return raw.length > 3 ? `${raw.slice(0,-3)} ${raw.slice(-3)}` : raw; }
+document.getElementById('pcIn').addEventListener('keydown', e => { if (e.key==='Enter') doPostcode(); });
+function setLoc(t) { document.getElementById('locVal').textContent = t; }
+function fmtPC(r) { return r.length>3 ? `${r.slice(0,-3)} ${r.slice(-3)}` : r; }
 
 // ── SEARCH ────────────────────────────────────────────────────────
-async function doSearch() {
-  if (!lat || !lng) return;
+async function search() {
+  if (!userLat || !userLng) return;
   const fuel   = document.getElementById('fuelSel').value;
   const radius = +document.getElementById('radSel').value;
-  ss('fn_fuel', fuel); ss('fn_rad', radius);
-
-  showSkeleton();
-  progress(10);
+  s('fn_fuel',fuel); s('fn_rad',radius);
+  showSkel(); prog(10);
 
   try {
-    const rows = await getCSV();
-    progress(70);
-    const col = FUEL_COLS[fuel];
+    const { stations, sources } = await getStations();
+    prog(70);
     const radiusM = radius * 1609.34;
-
-    // Filter by distance and price presence
     const near = [];
-    for (const row of rows) {
-      const sLat = parseFloat(row.latitude || row.lat || row.Latitude);
-      const sLng = parseFloat(row.longitude || row.lng || row.long || row.Longitude);
-      if (isNaN(sLat) || isNaN(sLng)) continue;
-      const priceRaw = row[col] || row[col.toLowerCase()] || row[fuel];
-      if (!priceRaw) continue;
-      const price = parseFloat(priceRaw);
-      if (isNaN(price) || price < 50 || price > 300) continue;
-      const dist = haversine(lat, lng, sLat, sLng);
+    for (const st of stations) {
+      const price = getPrice(st, fuel);
+      if (price === null) continue;
+      const dist = haversine(userLat, userLng, st._lat, st._lng);
       if (dist > radiusM) continue;
-      near.push({ ...row, _dist: dist, _price: price, _lat: sLat, _lng: sLng });
+      near.push({ ...st, _price: price, _dist: dist });
     }
-
-    progress(90);
-    renderResults(near, fuel, radius);
-    progress(100);
-    setTimeout(() => progress(0), 500);
+    prog(90);
+    render(near, fuel, radius, sources);
+    prog(100);
+    setTimeout(()=>prog(0), 600);
   } catch(e) {
     console.error(e);
-    progress(0);
-    showError();
+    prog(0);
+    showErr('Could not load prices. Check your connection and retry.');
   }
 }
 
 function refresh() {
-  csvCache = null; csvCacheTime = 0;
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('spinning');
-  doSearch().finally(() => btn.classList.remove('spinning'));
+  stationCache = null; cacheTime = 0;
+  const b = document.getElementById('rbtn');
+  b.classList.add('spin');
+  search().finally(()=>b.classList.remove('spin'));
 }
 
-// ── CSV FETCH ─────────────────────────────────────────────────────
-async function getCSV() {
-  const now = Date.now();
-  if (csvCache && now - csvCacheTime < 30 * 60 * 1000) return csvCache;
+// ── FETCH ALL FEEDS ───────────────────────────────────────────────
+async function getStations() {
+  if (stationCache && Date.now()-cacheTime < CACHE_TTL) return stationCache;
 
-  // Try direct first (CORS may work on some browsers/hosts), then proxy
-  let text;
-  const urls = [CSV_URL, CSV_CORS];
-  let lastErr;
-  for (const url of urls) {
+  prog(20);
+  const results = await Promise.allSettled(FEEDS.map(f => fetchFeed(f)));
+  const stations = [];
+  const sources = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value) {
+      stations.push(...r.value.stations);
+      sources.push(r.value.name);
+    }
+  }
+  if (!stations.length) throw new Error('All feeds failed');
+
+  document.getElementById('upd').innerHTML =
+    `Updated<br>${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+
+  stationCache = { stations, sources };
+  cacheTime = Date.now();
+  return stationCache;
+}
+
+async function fetchFeed({ name, url }) {
+  // Try direct, then via CORS proxy
+  for (const target of [url, PROXY+encodeURIComponent(url)]) {
     try {
-      const r = await fetch(url, { cache: 'no-cache' });
-      if (!r.ok) throw new Error(r.status);
-      text = await r.text();
-      break;
-    } catch(e) { lastErr = e; }
+      const res = await fetch(target, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!res.ok) continue;
+      const text = await res.text();
+      // Shell serves HTML wrapping JSON
+      const jsonStr = text.includes('<!DOCTYPE') || text.includes('<html')
+        ? text.match(/\{[\s\S]*\}/)?.[0] ?? text
+        : text;
+      const data = JSON.parse(jsonStr);
+      // Normalise: different feeds use slightly different shapes
+      const raw = data.stations || data.data || data.S || [];
+      const normalised = raw.map(st => normalise(st, name));
+      return { name, stations: normalised.filter(s=>s._lat&&s._lng) };
+    } catch { /* try next */ }
   }
-  if (!text) throw lastErr || new Error('CSV fetch failed');
-
-  csvCache = parseCSV(text);
-  csvCacheTime = Date.now();
-  document.getElementById('lastUpdated').innerHTML = `Updated<br>${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
-  return csvCache;
+  return null;
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (!lines.length) return [];
-  const headers = splitCSVLine(lines[0]);
-  const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const vals = splitCSVLine(lines[i]);
-    if (vals.length < 3) continue;
-    const obj = {};
-    headers.forEach((h, idx) => { obj[h.trim()] = (vals[idx] || '').trim(); });
-    rows.push(obj);
+function normalise(st, defaultBrand) {
+  // Location
+  const loc  = st.location || st.coords || st.coordinates || st;
+  const lat  = parseFloat(loc.latitude  || loc.lat || st.lat || st.latitude || 0);
+  const lng  = parseFloat(loc.longitude || loc.lng || loc.long || st.lng || st.longitude || 0);
+
+  // Prices — different feeds: {E10:149.9} or {E10_standard:149.9}
+  const prices = st.prices || st.fuel_prices || st.fuelPrices || {};
+  const normPrices = {};
+  for (const [k,v] of Object.entries(prices)) {
+    const ku = k.toUpperCase();
+    if (ku.startsWith('E10')) normPrices['E10'] = parseFloat(v) || normPrices['E10'];
+    else if (ku.startsWith('E5')) normPrices['E5'] = parseFloat(v) || normPrices['E5'];
+    else if (ku==='B7'||ku.startsWith('DIE')||ku.startsWith('B7_')) normPrices['B7'] = parseFloat(v) || normPrices['B7'];
+    else if (ku.startsWith('SDV')||ku.startsWith('SUPER')||ku.startsWith('SD')) normPrices['SDV'] = parseFloat(v) || normPrices['SDV'];
   }
-  return rows;
+
+  return {
+    _lat: lat, _lng: lng,
+    brand:    st.brand || st.brand_name || st.retailer || defaultBrand,
+    name:     st.name  || st.site_name  || '',
+    address:  st.address || st.street_address || st.Address || '',
+    postcode: st.postcode || st.post_code || st.Postcode || '',
+    prices:   normPrices,
+    updated:  st.last_updated || st.updated_at || st.LastUpdated || '',
+  };
 }
 
-function splitCSVLine(line) {
-  const res = []; let cur = ''; let inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') { inQ = !inQ; continue; }
-    if (c === ',' && !inQ) { res.push(cur); cur = ''; continue; }
-    cur += c;
-  }
-  res.push(cur);
-  return res;
+function getPrice(st, fuel) {
+  const p = st.prices[fuel];
+  return (p && p > 50 && p < 300) ? p : null;
 }
 
 // ── RENDER ────────────────────────────────────────────────────────
-function renderResults(stations, fuel, radius) {
+function render(stations, fuel, radius, sources) {
   const sorted = [...stations].sort((a,b) =>
-    sortMode === 'price' ? a._price - b._price : a._dist - b._dist);
+    sortMode==='price' ? a._price-b._price : a._dist-b._dist);
 
-  // Stats
-  const prices = sorted.map(s => s._price);
-  const mn = Math.min(...prices), mx = Math.max(...prices);
-  const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
-
-  document.getElementById('sMin').textContent = mn.toFixed(1) + 'p';
-  document.getElementById('sAvg').textContent = avg.toFixed(1) + 'p';
-  document.getElementById('sMax').textContent = mx.toFixed(1) + 'p';
-  document.getElementById('sCnt').textContent = stations.length;
-
-  // Data freshness — check updated field
-  const ages = sorted.map(s => parseAge(s.last_updated || s.updated || s.price_updated || s.LastUpdated)).filter(a => a !== null);
-  const medAge = ages.length ? median(ages) : null;
-  if (medAge !== null) {
-    const h = Math.round(medAge / 3600000);
-    document.getElementById('sAge').textContent = h < 1 ? '<1h' : h < 24 ? h + 'h' : Math.round(h/24) + 'd';
-    const notice = document.getElementById('dataNotice');
-    const noticeText = document.getElementById('dataNoticeText');
-    notice.style.display = '';
-    if (h > 48) {
-      notice.className = 'data-notice stale';
-      noticeText.textContent = `⚠️ Some prices may be stale (${Math.round(h/24)}d old) — verify at the pump`;
-    } else {
-      notice.className = 'data-notice fresh';
-      noticeText.textContent = `✓ Prices from UK Gov Fuel Finder scheme · updated within ${h < 2 ? '1h' : h + 'h'}`;
-    }
+  if (sorted.length) {
+    const prices = sorted.map(s=>s._price);
+    const mn = Math.min(...prices), mx = Math.max(...prices);
+    const avg = prices.reduce((a,b)=>a+b,0)/prices.length;
+    document.getElementById('sMin').textContent = mn.toFixed(1)+'p';
+    document.getElementById('sAvg').textContent = avg.toFixed(1)+'p';
+    document.getElementById('sMax').textContent = mx.toFixed(1)+'p';
+    document.getElementById('sCnt').textContent = sorted.length;
+    document.getElementById('sSrc').textContent = sources.length;
+    document.getElementById('stats').style.display='';
+    document.getElementById('notice').style.display='';
+    document.getElementById('noticeText').textContent =
+      `✓ ${sources.length} retailer${sources.length>1?'s':''} loaded · ${sorted.length} ${fuel} stations within ${radius} mi`;
+    document.getElementById('notice').className='notice ok';
   }
 
-  document.getElementById('statsBar').style.display = '';
-  document.getElementById('sortBar').style.display = '';
-  document.getElementById('rCount').textContent = `${sorted.length} station${sorted.length !== 1 ? 's' : ''}`;
+  document.getElementById('sbar').style.display='';
+  document.getElementById('rcnt').textContent = `${sorted.length} station${sorted.length!==1?'s':''}`;
 
-  // Price rank map (cheapest = 1)
-  const byPrice = [...sorted].sort((a,b) => a._price - b._price);
-  const rankMap = new Map(byPrice.map((s,i) => [s, i+1]));
+  const byPrice = [...sorted].sort((a,b)=>a._price-b._price);
+  const rank = new Map(byPrice.map((s,i)=>[s,i+1]));
 
   const main = document.getElementById('main');
-  main.className = 'results';
+  main.className = 'list';
 
   if (!sorted.length) {
-    main.innerHTML = `<div class="state"><div class="state-icon">🔍</div>
-      <div class="state-title">No stations found</div>
-      <div class="state-body">No ${fuel} prices found within ${radius} miles. Try a larger radius.</div></div>`;
+    main.innerHTML = `<div class="state"><div class="si">🔍</div>
+      <div class="st">No stations found</div>
+      <div class="sb">No ${fuel} within ${radius} miles. Try a larger radius or different fuel type.</div></div>`;
     return;
   }
 
-  main.innerHTML = sorted.map(s => cardHtml(s, avg, rankMap.get(s))).join('');
+  const avgPrices = sorted.length ? sorted.reduce((a,s)=>a+s._price,0)/sorted.length : 0;
+  main.innerHTML = sorted.map(st => card(st, avgPrices, rank.get(st))).join('');
 }
 
-function cardHtml(s, avg, rank) {
-  const price = s._price;
-  const diff = +(price - avg).toFixed(1);
-  const sign = diff > 0 ? '+' : '';
-  const diffCls = diff < -1 ? 'lo' : diff > 1 ? 'hi' : 'eq';
-  const pc = diff < -3 ? 'var(--cheap)' : diff < 0 ? 'var(--acc2)' : diff < 3 ? 'var(--mid)' : 'var(--pricey)';
-
-  const distMi = (s._dist / 1609.34).toFixed(1);
-  const brand = (s.brand || s.Brand || s.company || 'Station').toUpperCase();
-  const addr = titleCase((s.address || s.Address || s.street || '').split(',').slice(0,2).join(', '));
-  const pc2 = s.postcode || s.Postcode || s.post_code || '';
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s._lat},${s._lng}&travelmode=driving`;
-
-  const ageStr = parseAge(s.last_updated || s.updated || s.price_updated || s.LastUpdated);
-  const ageLabel = ageStr !== null ? fmtAge(ageStr) : '';
-  const isStale = ageStr !== null && ageStr > 48 * 3600000;
-
-  const rankHtml = rank <= 3
-    ? `<div class="rank-badge rank-${rank}">${rank}</div>` : '';
-
-  const priceParts = price.toFixed(1).split('.');
-  const whole = priceParts[0];
-  const dec = priceParts[1];
-
+function card(st, avg, rank) {
+  const p    = st._price;
+  const diff = +(p-avg).toFixed(1);
+  const sign = diff>0?'+':'';
+  const dcls = diff<-1?'lo':diff>1?'hi':'eq';
+  const pc   = diff<-4?'var(--cheap)':diff<0?'var(--acc2)':diff<4?'var(--mid)':'var(--pricey)';
+  const mi   = (st._dist/1609.34).toFixed(1);
+  const brand= (st.brand||'Station').toUpperCase();
+  const adr  = tc((st.address||'').split(',').slice(0,2).join(', '));
+  const maps = `https://www.google.com/maps/dir/?api=1&destination=${st._lat},${st._lng}&travelmode=driving`;
+  const rb   = rank<=3 ? `<div class="rbadge r${rank}">${rank}</div>` : '';
+  // Split price for superscript display: 169.9 → "169" + ".9p"
+  const whole= Math.floor(p);
+  const dec  = (p-whole).toFixed(1).slice(1); // ".9"
   return `<div class="card" style="--pc:${pc}">
-    ${rankHtml}
-    <div class="card-top">
-      <div class="card-info">
-        <div class="brand-row">
-          <div class="brand-dot"></div>
-          <span class="brand-name">${esc(brand)}</span>
-          ${isStale ? '<span class="stale-flag">⚠ old</span>' : ''}
-        </div>
-        <div class="addr">${esc(addr)}</div>
-        <div class="postcode-tag">${esc(pc2)}</div>
+    ${rb}
+    <div class="ct">
+      <div class="ci">
+        <div class="brow"><div class="bdot"></div><span class="bname">${esc(brand)}</span></div>
+        <div class="adr">${esc(adr)||'&nbsp;'}</div>
+        <div class="pctag">${esc(st.postcode)}</div>
       </div>
-      <div class="price-col">
-        <div class="price-big">${whole}<sup>.${dec}p</sup></div>
-        <div class="price-unit">per litre</div>
-        ${diff !== 0 ? `<div class="price-diff ${diffCls}">${sign}${diff}p vs avg</div>` : ''}
+      <div class="pcol">
+        <div class="pbig">${whole}<sup>${dec}p</sup></div>
+        <div class="punit">per litre</div>
+        ${diff!==0?`<div class="pdiff ${dcls}">${sign}${diff}p vs avg</div>`:''}
       </div>
     </div>
-    <div class="card-foot">
+    <div class="cf">
       <div class="pills">
-        <span class="pill">📏 ${distMi} mi</span>
-        ${ageLabel ? `<span class="pill">🕐 ${ageLabel}</span>` : ''}
+        <span class="pill">📏 ${mi} mi</span>
+        ${st.updated?`<span class="pill">🕐 ${age(st.updated)}</span>`:''}
       </div>
-      <a class="dir-btn" href="${mapsUrl}" target="_blank" rel="noopener">🗺 Directions</a>
+      <a class="dirbtn" href="${maps}" target="_blank" rel="noopener">🗺 Directions</a>
     </div>
   </div>`;
 }
 
-// ── SORT ──────────────────────────────────────────────────────────
-function setSort(mode, btn) {
-  sortMode = mode;
-  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  doSearch();
+function setSort(m, btn) {
+  sortMode = m;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  search();
 }
 
-// ── SKELETON ──────────────────────────────────────────────────────
-function showSkeleton() {
-  document.getElementById('statsBar').style.display = 'none';
-  document.getElementById('sortBar').style.display = 'none';
-  document.getElementById('dataNotice').style.display = 'none';
-  const m = document.getElementById('main');
-  m.className = 'results';
-  m.innerHTML = Array(6).fill(0).map(() => `
-    <div class="skel-card">
+// ── SKELETON / ERROR ──────────────────────────────────────────────
+function showSkel() {
+  ['stats','notice','sbar'].forEach(id=>document.getElementById(id).style.display='none');
+  const m=document.getElementById('main');
+  m.className='list';
+  m.innerHTML=Array(5).fill(0).map(()=>`
+    <div class="sk-card">
       <div style="display:flex;gap:10px">
-        <div style="flex:1">
-          <div class="sk" style="width:40%"></div>
-          <div class="sk" style="width:70%"></div>
-          <div class="sk" style="width:35%"></div>
-        </div>
-        <div class="sk" style="width:68px;height:32px;flex-shrink:0"></div>
+        <div style="flex:1"><div class="sk" style="width:40%"></div>
+          <div class="sk" style="width:70%"></div><div class="sk" style="width:35%"></div></div>
+        <div class="sk" style="width:64px;height:30px;flex-shrink:0"></div>
       </div>
-      <div class="sk" style="width:100%;height:1px;margin-top:4px"></div>
+      <div class="sk" style="width:100%;height:1px;margin:4px 0"></div>
       <div style="display:flex;gap:6px">
-        <div class="sk" style="width:60px"></div>
-        <div class="sk" style="width:60px"></div>
+        <div class="sk" style="width:60px"></div><div class="sk" style="width:60px"></div>
       </div>
     </div>`).join('');
 }
 
-function showError() {
-  document.getElementById('statsBar').style.display = 'none';
-  document.getElementById('sortBar').style.display = 'none';
-  const m = document.getElementById('main');
-  m.className = 'state';
-  m.innerHTML = `<div class="state-icon">⚠️</div>
-    <div class="state-title">Couldn't load price data</div>
-    <div class="state-body">The government fuel data couldn't be fetched. Check your connection and try again.</div>
-    <div class="state-actions"><button class="btn" onclick="refresh()">Retry</button></div>`;
+function showErr(msg) {
+  ['stats','notice','sbar'].forEach(id=>document.getElementById(id).style.display='none');
+  const m=document.getElementById('main');
+  m.className='state';
+  m.innerHTML=`<div class="si">⚠️</div><div class="st">Couldn't load prices</div>
+    <div class="sb">${esc(msg)}</div>
+    <div class="sa"><button class="btn" onclick="refresh()">Retry</button></div>`;
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2-lat1) * Math.PI/180;
-  const dLon = (lon2-lon1) * Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine(la1,lo1,la2,lo2){
+  const R=6371000,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-
-function parseAge(val) {
-  if (!val) return null;
-  const d = new Date(val.includes('/') ? val.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1') : val);
-  if (isNaN(d)) return null;
-  return Date.now() - d.getTime();
+function age(v){
+  if(!v)return'';
+  const d=new Date(v.includes('/')?v.replace(/(\d+)\/(\d+)\/(\d+)/,'$3-$2-$1'):v);
+  if(isNaN(d))return'';
+  const h=Math.round((Date.now()-d)/3600000);
+  return h<1?'Just now':h<24?`${h}h ago`:`${Math.round(h/24)}d ago`;
 }
-
-function fmtAge(ms) {
-  const h = Math.round(ms / 3600000);
-  if (h < 1) return 'Just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.round(h/24)}d ago`;
+function tc(s){return s.replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.slice(1).toLowerCase())}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function prog(p){document.getElementById('pbar').style.width=p+'%'}
+function toast(msg,ms=3000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
 }
-
-function median(arr) {
-  if (!arr.length) return null;
-  const s = [...arr].sort((a,b)=>a-b);
-  const m = Math.floor(s.length/2);
-  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
-}
-
-function titleCase(s) {
-  return s.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
-}
-
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function progress(pct) {
-  document.getElementById('loadBar').style.width = pct + '%';
-}
-
-function showToast(msg, ms = 3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), ms);
-}
-
-function ls(k) { try { return localStorage.getItem(k); } catch { return null; } }
-function ss(k,v) { try { localStorage.setItem(k, String(v)); } catch {} }
+function g(k){try{return localStorage.getItem(k)}catch{return null}}
+function s(k,v){try{localStorage.setItem(k,String(v))}catch{}}
 
 // ── INSTALL ───────────────────────────────────────────────────────
-function handleInstall() {
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredPrompt = e;
-    if (!ls('fn_inst')) document.getElementById('installBar').classList.add('show');
+function setupInstall(){
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();deferredPrompt=e;
+    if(!g('fn_inst'))document.getElementById('instBar').classList.add('show');
   });
-  document.getElementById('installBtn').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
+  document.getElementById('instBtn').addEventListener('click',async()=>{
+    if(!deferredPrompt)return;
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') { ss('fn_inst','1'); document.getElementById('installBar').classList.remove('show'); }
-    deferredPrompt = null;
+    const{outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted'){s('fn_inst','1');document.getElementById('instBar').classList.remove('show');}
+    deferredPrompt=null;
   });
-  document.getElementById('dismissInstall').addEventListener('click', () => {
-    document.getElementById('installBar').classList.remove('show'); ss('fn_inst','1');
+  document.getElementById('instDis').addEventListener('click',()=>{
+    document.getElementById('instBar').classList.remove('show');s('fn_inst','1');
   });
 }
 </script>
